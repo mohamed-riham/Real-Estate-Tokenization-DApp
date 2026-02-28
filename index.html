@@ -8,7 +8,6 @@
 </head>
 
 <body>
-  <!-- Sticky Topbar (Pro style) -->
   <header class="topbar">
     <div class="topbarRow">
       <div class="brand">
@@ -26,12 +25,10 @@
   </header>
 
   <div class="container">
-    <!-- Keep h1 for semantics but hidden by CSS -->
     <h1>🏠 Real Estate Tokenization DApp (Sepolia)</h1>
 
     <div class="layout">
 
-      <!-- LEFT NAVIGATION (Binance-like) -->
       <nav class="nav" aria-label="Primary">
         <div class="navCard">
           <div class="navHeader">
@@ -58,10 +55,8 @@
         </div>
       </nav>
 
-      <!-- MAIN -->
       <main class="main">
 
-        <!-- DASHBOARD -->
         <section class="section" id="sec-dashboard">
           <div class="card">
             <h2>Dashboard • Status & Login</h2>
@@ -105,7 +100,6 @@
           </div>
         </section>
 
-        <!-- EXPLORE / READ -->
         <section class="section" id="sec-read">
           <div class="row">
             <div class="card">
@@ -149,7 +143,6 @@
           </div>
         </section>
 
-        <!-- ISSUER / CREATE -->
         <section class="section" id="sec-issuer">
           <div class="card">
             <h2>Issuer • Create Asset</h2>
@@ -186,7 +179,6 @@
           </div>
         </section>
 
-        <!-- PRIMARY SALE -->
         <section class="section" id="sec-primary">
           <div class="card">
             <h2>Primary Sale • Buy Shares (from Issuer)</h2>
@@ -208,7 +200,6 @@
           </div>
         </section>
 
-        <!-- TRANSFER -->
         <section class="section" id="sec-transfer">
           <div class="card">
             <h2>Transfer • Send Shares</h2>
@@ -235,7 +226,6 @@
           </div>
         </section>
 
-        <!-- SECONDARY MARKET -->
         <section class="section" id="sec-secondary">
           <div class="row">
             <div class="card">
@@ -294,7 +284,6 @@
           </div>
         </section>
 
-        <!-- LIQUIDITY -->
         <section class="section" id="sec-liquidity">
           <div class="row">
             <div class="card">
@@ -328,7 +317,6 @@
           </div>
         </section>
 
-        <!-- ANALYTICS -->
         <section class="section" id="sec-analytics">
           <div class="row">
             <div class="card">
@@ -361,7 +349,6 @@
           </div>
         </section>
 
-        <!-- DEBUG -->
         <section class="section" id="sec-debug">
           <div class="card">
             <h2>Debug • Logs</h2>
@@ -371,7 +358,6 @@
 
       </main>
 
-      <!-- RIGHT HELP PANEL -->
       <aside class="help card" aria-label="Help panel">
     
         <h2>📘 Help / User Guide</h2>
@@ -540,7 +526,6 @@
     </div>
   </div>
 
-  <!-- Mobile Help Modal -->
   <div class="modalBackdrop" id="mobileModal">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mobileTitle">
       <div class="modalHeader">
@@ -579,14 +564,9 @@
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 
 <script>
-  /************************************************************
-   * 1) CONTRACT ADDRESS (Sepolia deployed)
-   ************************************************************/
   const CONTRACT_ADDRESS = "0x334335734862579f625F235f05198376Ac603e1D";
 
-  /************************************************************
-   * 2) ABI ARRAY HERE (from Remix -> Solidity Compiler -> ABI)
-   ************************************************************/
+
   const ABI = [
     
 	{
@@ -1279,7 +1259,6 @@
   const SEPOLIA_CHAIN_ID = 11155111;
   const SEPOLIA_CHAIN_HEX = "0xaa36a7";
 
-  // Local session storage key
   const SESSION_KEY = "re_token_dapp_session_v1";
   const LOGIN_MESSAGE = "Login to Real Estate Tokenization DApp (Sepolia). This does NOT cost gas.";
 
@@ -1308,9 +1287,7 @@
     $("noticeBox").style.display = "none";
   }
 
-  // ✅ NEW: disable only protected actions; keep Login always available
   function enableProtectedActions(enabled) {
-    // Buttons that require an authenticated session should have class="action"
     document.querySelectorAll(".action").forEach(btn => btn.disabled = !enabled);
 
     $("btnRefresh").disabled = !enabled;
@@ -1319,11 +1296,9 @@
     $("btnLogout").disabled = !enabled;
     $("btnWhoAmI").disabled = !enabled;
 
-    // ✅ Keep login always enabled (except when in busy state)
     if ($("btnLogin")) $("btnLogin").disabled = false;
   }
 
-  // ✅ NEW: login busy UI
   function setLoginBusy(isBusy) {
     const btn = $("btnLogin");
     if (!btn) return;
@@ -1390,7 +1365,6 @@
     setPill("netPill", "Network: Sepolia ✅", "ok");
   }
 
-  // ✅ UPDATED LOGIN (Signature-based)
   async function loginWithSignature() {
     hideNotice();
     setLoginBusy(true);
@@ -1448,7 +1422,6 @@
     }
   }
 
-  // ✅ UPDATED LOGOUT: clears session + in-memory objects, keeps Login clickable
   function logout() {
     localStorage.removeItem(SESSION_KEY);
 
@@ -1532,9 +1505,7 @@
     }
   }
 
-  // -----------------------------
-  // READ
-  // -----------------------------
+
   async function readAssetCount() {
     await checkNetwork();
     const c = await contract.assetCount();
@@ -1597,9 +1568,7 @@
     $("extraOut").textContent = `Your shares on asset ${assetId}: ${bal.toString()}\n(${my})`;
   }
 
-  // -----------------------------
-  // WRITE
-  // -----------------------------
+
   async function createAsset() {
     await checkNetwork();
     const name = $("cName").value.trim();
@@ -1726,9 +1695,7 @@
     $("balOut").textContent = `${addr}\nAsset ${assetId} balance: ${bal.toString()} shares`;
   }
 
-  // -----------------------------
-  // Navigation active state
-  // -----------------------------
+
   function setActiveNav(sectionId){
     document.querySelectorAll(".navLink").forEach(a=>{
       a.classList.toggle("active", a.dataset.sec === sectionId);
@@ -1750,9 +1717,7 @@
     sections.forEach(s=>s && obs.observe(s));
   }
 
-  // -----------------------------
-  // Mobile Option A helper
-  // -----------------------------
+
   function isMobileUA(){
     return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   }
@@ -1764,9 +1729,7 @@
     $("mobileModal").style.display = "none";
   }
 
-  // -----------------------------
-  // UI hooks
-  // -----------------------------
+
   $("btnLogin").onclick = async () => {
     try { await loginWithSignature(); }
     catch (_) { /* already handled inside loginWithSignature */ }
@@ -1825,11 +1788,9 @@
     alert("Open a Sepolia faucet (example: Alchemy Sepolia faucet / sepoliafaucet.com).");
   };
 
-  // Topbar helpers
   $("btnScrollTop").onclick = () => window.scrollTo({ top: 0, behavior: "smooth" });
   $("btnMobileHelp").onclick = () => openMobileModal();
 
-  // Modal buttons
   $("btnCloseMobile").onclick = () => closeMobileModal();
   $("btnDismissMobile").onclick = () => closeMobileModal();
   $("btnCopyUrl").onclick = async () => {
@@ -1845,7 +1806,6 @@
     if (e.target.id === "mobileModal") closeMobileModal();
   });
 
-  // ✅ UPDATED: no page reload; reset cleanly instead
   if (window.ethereum) {
     window.ethereum.on("accountsChanged", () => {
       logout();
@@ -1857,7 +1817,6 @@
     });
   }
 
-  // Initial UI state
   enableProtectedActions(false);
   setPill("netPill", "Network: Not checked", "warn");
   setPill("accPill", "Wallet: Not connected", "warn");
@@ -1865,14 +1824,11 @@
   setPill("contractPill", "Contract: Not set", "warn");
   showNotice("warn", "Step 1: Click 'Login with MetaMask' to start.");
 
-  // Section observer for nav highlight
   watchSections();
   setActiveNav("sec-dashboard");
 
-  // Try restore session
   tryRestoreSession();
 
-  // Option A auto-help: on mobile + no ethereum injected, show modal
   window.addEventListener("load", ()=>{
     if (isMobileUA() && !window.ethereum) {
       openMobileModal();
