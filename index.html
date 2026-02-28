@@ -575,21 +575,20 @@
  <aside class="help card">
       
     </aside>
+<!-- Ethers v5 -->
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 
-  <!-- Ethers v5 -->
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+<script>
+  /************************************************************
+   * 1) CONTRACT ADDRESS (Sepolia deployed)
+   ************************************************************/
+  const CONTRACT_ADDRESS = "0x334335734862579f625F235f05198376Ac603e1D";
 
-  <script>
-    /************************************************************
-     * 1) CONTRACT ADDRESS (Sepolia deployed)
-     ************************************************************/
-    const CONTRACT_ADDRESS = "0x334335734862579f625F235f05198376Ac603e1D";
-
-    /************************************************************
-     * 2) ABI ARRAY HERE (from Remix -> Solidity Compiler -> ABI)
-     ************************************************************/
-    const ABI = [
-      
+  /************************************************************
+   * 2) ABI ARRAY HERE (from Remix -> Solidity Compiler -> ABI)
+   ************************************************************/
+  const ABI = [
+    
 	{
 		"anonymous": false,
 		"inputs": [
@@ -1274,117 +1273,135 @@
 		"stateMutability": "view",
 		"type": "function"
 	}
-    ];
+    // ✅ PASTE FULL ABI HERE
+  ];
 
-    const SEPOLIA_CHAIN_ID = 11155111;
-    const SEPOLIA_CHAIN_HEX = "0xaa36a7";
+  const SEPOLIA_CHAIN_ID = 11155111;
+  const SEPOLIA_CHAIN_HEX = "0xaa36a7";
 
-    // Local session storage key
-    const SESSION_KEY = "re_token_dapp_session_v1";
-    const LOGIN_MESSAGE = "Login to Real Estate Tokenization DApp (Sepolia). This does NOT cost gas.";
+  // Local session storage key
+  const SESSION_KEY = "re_token_dapp_session_v1";
+  const LOGIN_MESSAGE = "Login to Real Estate Tokenization DApp (Sepolia). This does NOT cost gas.";
 
-    let provider, signer, contract, currentAccount;
+  let provider, signer, contract, currentAccount;
 
-    const $ = (id) => document.getElementById(id);
+  const $ = (id) => document.getElementById(id);
 
-    function log(msg) { $("log").textContent = msg + "\n\n" + $("log").textContent; }
+  function log(msg) { $("log").textContent = msg + "\n\n" + $("log").textContent; }
 
-    function setPill(id, text, cls) {
-      const el = $(id);
-      el.textContent = text;
-      el.className = "pill " + (cls || "");
-    }
+  function setPill(id, text, cls) {
+    const el = $(id);
+    el.textContent = text;
+    el.className = "pill " + (cls || "");
+  }
 
-    function shortAddr(a) { return a ? (a.slice(0, 6) + "..." + a.slice(-4)) : "-"; }
+  function shortAddr(a) { return a ? (a.slice(0, 6) + "..." + a.slice(-4)) : "-"; }
 
-    function showNotice(type, text) {
-      const box = $("noticeBox");
-      box.style.display = "block";
-      box.className = "notice " + type;
-      box.textContent = text;
-    }
+  function showNotice(type, text) {
+    const box = $("noticeBox");
+    box.style.display = "block";
+    box.className = "notice " + type;
+    box.textContent = text;
+  }
 
-    function hideNotice() {
-      $("noticeBox").style.display = "none";
-    }
+  function hideNotice() {
+    $("noticeBox").style.display = "none";
+  }
 
-    function enableActions(enabled) {
-      document.querySelectorAll(".action").forEach(btn => btn.disabled = !enabled);
-      $("btnRefresh").disabled = !enabled;
-      $("btnCopyMyAddr").disabled = !enabled;
-      $("btnPasteMe").disabled = !enabled;
-      $("btnLogout").disabled = !enabled;
-      $("btnWhoAmI").disabled = !enabled;
-    }
+  // ✅ NEW: disable only protected actions; keep Login always available
+  function enableProtectedActions(enabled) {
+    // Buttons that require an authenticated session should have class="action"
+    document.querySelectorAll(".action").forEach(btn => btn.disabled = !enabled);
 
-    function friendlyError(e) {
-      const msg = (e && e.message) ? e.message : String(e);
-      if (msg.includes("User rejected")) return "You rejected the MetaMask request. Please try again.";
-      if (msg.includes("MetaMask not detected")) return "Wallet not detected. On mobile: open this in MetaMask Mobile → Browser.";
-      if (msg.includes("Wrong network")) return "Wrong network. Please switch MetaMask to Sepolia Testnet.";
-      if (msg.includes("insufficient funds")) return "Not enough Sepolia ETH for gas. Use faucet.";
-      if (msg.includes("Contract has insufficient ETH")) return "Buyback failed: contract has no ETH. Fund it first.";
-      if (msg.includes("ABI is empty")) return "ABI is missing. Paste the full ABI from Remix.";
-      return msg;
-    }
+    $("btnRefresh").disabled = !enabled;
+    $("btnCopyMyAddr").disabled = !enabled;
+    $("btnPasteMe").disabled = !enabled;
+    $("btnLogout").disabled = !enabled;
+    $("btnWhoAmI").disabled = !enabled;
 
-    async function ensureSetup() {
-      if (!window.ethereum) throw new Error("MetaMask not detected. Install MetaMask (desktop) or use MetaMask Mobile Browser.");
-      if (!CONTRACT_ADDRESS || !CONTRACT_ADDRESS.startsWith("0x")) throw new Error("Invalid contract address.");
-      if (!Array.isArray(ABI) || ABI.length === 0) throw new Error("ABI is empty. Paste full ABI from Remix.");
+    // ✅ Keep login always enabled (except when in busy state)
+    if ($("btnLogin")) $("btnLogin").disabled = false;
+  }
 
-      provider = new ethers.providers.Web3Provider(window.ethereum);
-      signer = provider.getSigner();
-      setPill("contractPill", "Contract: " + shortAddr(CONTRACT_ADDRESS), "ok");
-    }
+  // ✅ NEW: login busy UI
+  function setLoginBusy(isBusy) {
+    const btn = $("btnLogin");
+    if (!btn) return;
+    btn.disabled = !!isBusy;
+    btn.textContent = isBusy ? "Logging in..." : "Login with MetaMask";
+  }
 
-    async function getChainId() {
-      const hex = await window.ethereum.request({ method: "eth_chainId" });
-      return parseInt(hex, 16);
-    }
+  function friendlyError(e) {
+    const msg = (e && e.message) ? e.message : String(e);
+    if (msg.includes("User rejected")) return "You rejected the MetaMask request. Please try again.";
+    if (msg.includes("MetaMask not detected")) return "Wallet not detected. On mobile: open this in MetaMask Mobile → Browser.";
+    if (msg.includes("Wrong network")) return "Wrong network. Please switch MetaMask to Sepolia Testnet.";
+    if (msg.includes("insufficient funds")) return "Not enough Sepolia ETH for gas. Use faucet.";
+    if (msg.includes("Contract has insufficient ETH")) return "Buyback failed: contract has no ETH. Fund it first.";
+    if (msg.includes("ABI is empty")) return "ABI is missing. Paste the full ABI from Remix.";
+    return msg;
+  }
 
-    async function switchToSepolia() {
-      try {
+  async function ensureSetup() {
+    if (!window.ethereum) throw new Error("MetaMask not detected. Install MetaMask (desktop) or use MetaMask Mobile Browser.");
+    if (!CONTRACT_ADDRESS || !CONTRACT_ADDRESS.startsWith("0x")) throw new Error("Invalid contract address.");
+    if (!Array.isArray(ABI) || ABI.length === 0) throw new Error("ABI is empty. Paste full ABI from Remix.");
+
+    provider = new ethers.providers.Web3Provider(window.ethereum);
+    signer = provider.getSigner();
+    setPill("contractPill", "Contract: " + shortAddr(CONTRACT_ADDRESS), "ok");
+  }
+
+  async function getChainId() {
+    const hex = await window.ethereum.request({ method: "eth_chainId" });
+    return parseInt(hex, 16);
+  }
+
+  async function switchToSepolia() {
+    try {
+      await window.ethereum.request({
+        method: "wallet_switchEthereumChain",
+        params: [{ chainId: SEPOLIA_CHAIN_HEX }]
+      });
+    } catch (err) {
+      if (err && err.code === 4902) {
         await window.ethereum.request({
-          method: "wallet_switchEthereumChain",
-          params: [{ chainId: SEPOLIA_CHAIN_HEX }]
+          method: "wallet_addEthereumChain",
+          params: [{
+            chainId: SEPOLIA_CHAIN_HEX,
+            chainName: "Sepolia Test Network",
+            nativeCurrency: { name: "SepoliaETH", symbol: "SEP", decimals: 18 },
+            rpcUrls: ["https://rpc.sepolia.org"],
+            blockExplorerUrls: ["https://sepolia.etherscan.io"]
+          }]
         });
-      } catch (err) {
-        if (err && err.code === 4902) {
-          await window.ethereum.request({
-            method: "wallet_addEthereumChain",
-            params: [{
-              chainId: SEPOLIA_CHAIN_HEX,
-              chainName: "Sepolia Test Network",
-              nativeCurrency: { name: "SepoliaETH", symbol: "SEP", decimals: 18 },
-              rpcUrls: ["https://rpc.sepolia.org"],
-              blockExplorerUrls: ["https://sepolia.etherscan.io"]
-            }]
-          });
-        } else {
-          throw new Error("Network switch rejected. Please switch to Sepolia manually.");
-        }
+      } else {
+        throw new Error("Network switch rejected. Please switch to Sepolia manually.");
       }
     }
+  }
 
-    async function checkNetwork() {
-      const chainId = await getChainId();
-      if (chainId !== SEPOLIA_CHAIN_ID) {
-        setPill("netPill", "Network: Wrong (" + chainId + ")", "warn");
-        throw new Error("Wrong network. Switch MetaMask to Sepolia Testnet (11155111).");
-      }
-      setPill("netPill", "Network: Sepolia ✅", "ok");
+  async function checkNetwork() {
+    const chainId = await getChainId();
+    if (chainId !== SEPOLIA_CHAIN_ID) {
+      setPill("netPill", "Network: Wrong (" + chainId + ")", "warn");
+      throw new Error("Wrong network. Switch MetaMask to Sepolia Testnet (11155111).");
     }
+    setPill("netPill", "Network: Sepolia ✅", "ok");
+  }
 
-    // OPTION 1 LOGIN (Signature-based)
-    async function loginWithSignature() {
-      hideNotice();
-      enableActions(false);
+  // ✅ UPDATED LOGIN (Signature-based)
+  async function loginWithSignature() {
+    hideNotice();
+    setLoginBusy(true);
+    enableProtectedActions(false);
 
+    try {
       await ensureSetup();
 
       const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
       currentAccount = accounts[0];
+
       setPill("accPill", "Wallet: " + shortAddr(currentAccount), "ok");
       log("Wallet connected: " + currentAccount);
 
@@ -1418,427 +1435,449 @@
       }));
 
       setPill("loginPill", "Login: Verified ✅", "ok");
-      enableActions(true);
+      enableProtectedActions(true);
       showNotice("ok", "Login successful ✅ You can now use all features.");
       log("Login verified (signature).");
+
+    } catch (e) {
+      showNotice("bad", friendlyError(e));
+      log("LOGIN ERROR: " + friendlyError(e));
+      throw e;
+    } finally {
+      setLoginBusy(false);
     }
+  }
 
-    function logout() {
-      localStorage.removeItem(SESSION_KEY);
-      setPill("accPill", "Wallet: Not connected", "warn");
-      setPill("loginPill", "Login: Not verified", "warn");
-      enableActions(false);
-      showNotice("warn", "Logged out. Click 'Login with MetaMask' to continue.");
-      log("Logged out.");
-    }
+  // ✅ UPDATED LOGOUT: clears session + in-memory objects, keeps Login clickable
+  function logout() {
+    localStorage.removeItem(SESSION_KEY);
 
-    async function tryRestoreSession() {
-      try {
-        const raw = localStorage.getItem(SESSION_KEY);
-        if (!raw || !window.ethereum) return;
+    currentAccount = null;
+    provider = null;
+    signer = null;
+    contract = null;
 
-        const s = JSON.parse(raw);
-        if (!s || !s.address || !s.signature || !s.message) return;
-
-        const accounts = await window.ethereum.request({ method: "eth_accounts" });
-        if (!accounts || accounts.length === 0) return;
-
-        const current = accounts[0];
-        if (current.toLowerCase() !== s.address.toLowerCase()) return;
-
-        await ensureSetup();
-        provider = new ethers.providers.Web3Provider(window.ethereum);
-        signer = provider.getSigner();
-
-        const chainId = await getChainId();
-        if (chainId !== SEPOLIA_CHAIN_ID) {
-          setPill("netPill", "Network: Wrong (" + chainId + ")", "warn");
-          setPill("accPill", "Wallet: " + shortAddr(current), "ok");
-          setPill("loginPill", "Login: Saved (switch network)", "warn");
-          showNotice("warn", "Session found, but wrong network. Switch to Sepolia then login again.");
-          return;
-        }
-
-        await checkNetwork();
-
-        const recovered = ethers.utils.verifyMessage(s.message, s.signature);
-        if (recovered.toLowerCase() !== current.toLowerCase()) {
-          localStorage.removeItem(SESSION_KEY);
-          return;
-        }
-
-        currentAccount = current;
-        setPill("accPill", "Wallet: " + shortAddr(currentAccount), "ok");
-        setPill("loginPill", "Login: Verified ✅", "ok");
-        setPill("contractPill", "Contract: " + shortAddr(CONTRACT_ADDRESS), "ok");
-
-        contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
-        enableActions(true);
-
-        showNotice("ok", "Welcome back ✅ Session restored.");
-        log("Session restored: " + currentAccount);
-      } catch (_) {}
-    }
-
-    async function txWrap(txPromise, outId, label) {
-      try {
-        $(outId).textContent = label + ": sending transaction…";
-        const tx = await txPromise;
-        $(outId).textContent = label + ": tx sent\n" + tx.hash;
-
-        const rec = await tx.wait();
-        $(outId).textContent = label + ": confirmed ✅\nTx: " + tx.hash + "\nBlock: " + rec.blockNumber;
-        return rec;
-      } catch (e) {
-        const f = friendlyError(e);
-        $(outId).textContent = label + ": ERROR ❌\n" + f;
-        showNotice("bad", f);
-        log("ERROR (" + label + "): " + f);
-        throw e;
-      }
-    }
-
-    // -----------------------------
-    // READ
-    // -----------------------------
-    async function readAssetCount() {
-      await checkNetwork();
-      const c = await contract.assetCount();
-      $("assetCountVal").textContent = c.toString();
-    }
-
-    async function readAsset() {
-      await checkNetwork();
-      const id = $("readAssetId").value.trim();
-      if (!id) return $("assetOut").textContent = "Enter asset ID";
-      const a = await contract.assets(id);
-      $("assetOut").textContent = JSON.stringify({
-        id: a.id.toString(),
-        name: a.name,
-        location: a.location,
-        metadataURI: a.metadataURI,
-        totalShares: a.totalShares.toString(),
-        pricePerShareWei: a.pricePerShareWei.toString(),
-        issuer: a.issuer,
-        active: a.active
-      }, null, 2);
-    }
-
-    async function readIssuerAvail() {
-      await checkNetwork();
-      const assetId = $("xAssetId").value.trim();
-      if (!assetId) return $("extraOut").textContent = "Enter Asset ID";
-      const v = await contract.availableIssuerShares(assetId);
-      $("extraOut").textContent = `Issuer shares left for asset ${assetId}: ${v.toString()}`;
-    }
-
-    async function readContractBal() {
-      await checkNetwork();
-      const v = await contract.contractBalance();
-      $("extraOut").textContent = `Contract ETH balance: ${ethers.utils.formatEther(v)} ETH`;
-    }
-
-    async function readAssetSummary() {
-      await checkNetwork();
-      const assetId = $("xAssetId").value.trim();
-      if (!assetId) return $("extraOut").textContent = "Enter Asset ID";
-      const r = await contract.getAssetSummary(assetId);
-      $("extraOut").textContent = JSON.stringify({
-        id: r[0].toString(),
-        name: r[1],
-        location: r[2],
-        totalShares: r[3].toString(),
-        pricePerShareWei: r[4].toString(),
-        issuer: r[5],
-        active: r[6]
-      }, null, 2);
-    }
-
-    async function readMyBalanceOnAsset() {
-      await checkNetwork();
-      const assetId = $("xAssetId").value.trim();
-      if (!assetId) return $("extraOut").textContent = "Enter Asset ID";
-      const my = await signer.getAddress();
-      const bal = await contract.balances(assetId, my);
-      $("extraOut").textContent = `Your shares on asset ${assetId}: ${bal.toString()}\n(${my})`;
-    }
-
-    // -----------------------------
-    // WRITE
-    // -----------------------------
-    async function createAsset() {
-      await checkNetwork();
-      const name = $("cName").value.trim();
-      const loc = $("cLoc").value.trim();
-      const uri = $("cUri").value.trim();
-      const shares = $("cShares").value.trim();
-      const priceWei = $("cPriceWei").value.trim();
-
-      if (!name || !loc || !shares || !priceWei) {
-        return showNotice("warn", "Please fill Name, Location, Total Shares, Price Per Share.");
-      }
-
-      await txWrap(contract.createAsset(name, loc, uri, shares, priceWei), "createOut", "Create Asset");
-      await readAssetCount();
-    }
-
-    async function buyShares() {
-      await checkNetwork();
-      const assetId = $("bAssetId").value.trim();
-      const shares = $("bShares").value.trim();
-      if (!assetId || !shares) return showNotice("warn", "Enter Asset ID and Shares.");
-
-      const a = await contract.assets(assetId);
-      const costWei = ethers.BigNumber.from(shares).mul(a.pricePerShareWei);
-
-      await txWrap(contract.buyShares(assetId, shares, { value: costWei }), "buyOut", "Buy Shares (Primary)");
-    }
-
-    async function transferShares() {
-      await checkNetwork();
-      const assetId = $("tAssetId").value.trim();
-      const to = $("tTo").value.trim();
-      const shares = $("tShares").value.trim();
-      if (!assetId || !to || !shares) return showNotice("warn", "Enter Asset ID, Receiver Address, Shares.");
-
-      await txWrap(contract.transferShares(assetId, to, shares), "transferOut", "Transfer");
-    }
-
-    async function listSharesForSale() {
-      await checkNetwork();
-      const assetId = $("lAssetId").value.trim();
-      const shares = $("lShares").value.trim();
-      const priceWei = $("lPriceWei").value.trim();
-
-      if (!assetId || !shares || !priceWei) return showNotice("warn", "Enter Asset ID, Shares and Price.");
-      await txWrap(contract.listSharesForSale(assetId, shares, priceWei), "listOut", "List Shares");
-    }
-
-    async function cancelListing() {
-      await checkNetwork();
-      const assetId = $("lAssetId").value.trim();
-      if (!assetId) return showNotice("warn", "Enter Asset ID to cancel listing.");
-      await txWrap(contract.cancelListing(assetId), "listOut", "Cancel Listing");
-    }
-
-    async function readListing() {
-      await checkNetwork();
-      const assetId = $("blAssetId").value.trim();
-      const seller = $("blSeller").value.trim();
-      if (!assetId || !seller) return showNotice("warn", "Enter Asset ID and Seller address.");
-      const L = await contract.listings(assetId, seller);
-      $("buyListOut").textContent = JSON.stringify({
-        shares: L.shares.toString(),
-        pricePerShareWei: L.pricePerShareWei.toString(),
-        active: L.active
-      }, null, 2);
-    }
-
-    async function buyFromListing() {
-      await checkNetwork();
-      const assetId = $("blAssetId").value.trim();
-      const seller = $("blSeller").value.trim();
-      const shares = $("blShares").value.trim();
-      if (!assetId || !seller || !shares) return showNotice("warn", "Enter Asset ID, Seller, Shares.");
-
-      const L = await contract.listings(assetId, seller);
-      if (!L.active) return showNotice("warn", "This listing is not active.");
-
-      const costWei = ethers.BigNumber.from(shares).mul(L.pricePerShareWei);
-      await txWrap(contract.buyListedShares(assetId, seller, shares, { value: costWei }), "buyListOut", "Buy From Listing");
-    }
-
-    async function fundContract() {
-      await checkNetwork();
-      const eth = $("fEth").value.trim();
-      if (!eth) return showNotice("warn", "Enter ETH amount (example 0.01).");
-      const valueWei = ethers.utils.parseEther(eth);
-      await txWrap(contract.fundContract({ value: valueWei }), "fundOut", "Fund Contract");
-    }
-
-    async function sellSharesBuyback() {
-      await checkNetwork();
-      const assetId = $("sAssetId").value.trim();
-      const shares = $("sShares").value.trim();
-      if (!assetId || !shares) return showNotice("warn", "Enter Asset ID and Shares.");
-      await txWrap(contract.sellSharesBuyback(assetId, shares), "sellOut", "Sell Buyback");
-    }
-
-    async function getOwners() {
-      await checkNetwork();
-      const assetId = $("oAssetId").value.trim();
-      if (!assetId) return showNotice("warn", "Enter Asset ID.");
-      const owners = await contract.getOwners(assetId);
-      $("ownersOut").textContent = owners.map((a, i) => `${i + 1}. ${a}`).join("\n");
-    }
-
-    async function getTop10() {
-      await checkNetwork();
-      const assetId = $("oAssetId").value.trim();
-      if (!assetId) return showNotice("warn", "Enter Asset ID.");
-      const res = await contract.getTop10Beneficiaries(assetId);
-      const addrs = res[0], shares = res[1];
-      let out = ["Top 10 Beneficiaries:"];
-      for (let i = 0; i < addrs.length; i++) out.push(`${i + 1}. ${addrs[i]} → ${shares[i].toString()} shares`);
-      $("ownersOut").textContent = out.join("\n");
-    }
-
-    async function checkBalance() {
-      await checkNetwork();
-      const assetId = $("balAssetId").value.trim();
-      const addr = $("balAddr").value.trim();
-      if (!assetId || !addr) return showNotice("warn", "Enter Asset ID and Address.");
-      const bal = await contract.balances(assetId, addr);
-      $("balOut").textContent = `${addr}\nAsset ${assetId} balance: ${bal.toString()} shares`;
-    }
-
-    // -----------------------------
-    // Navigation active state
-    // -----------------------------
-    function setActiveNav(sectionId){
-      document.querySelectorAll(".navLink").forEach(a=>{
-        a.classList.toggle("active", a.dataset.sec === sectionId);
-      });
-    }
-
-    function watchSections(){
-      const sections = [
-        "sec-dashboard","sec-read","sec-issuer","sec-primary","sec-transfer","sec-secondary","sec-liquidity","sec-analytics","sec-debug"
-      ].map(id => document.getElementById(id));
-
-      const obs = new IntersectionObserver((entries)=>{
-        const visible = entries
-          .filter(e=>e.isIntersecting)
-          .sort((a,b)=>b.intersectionRatio - a.intersectionRatio)[0];
-        if (visible) setActiveNav(visible.target.id);
-      }, { root: null, threshold: [0.12, 0.18, 0.25, 0.35] });
-
-      sections.forEach(s=>s && obs.observe(s));
-    }
-
-    // -----------------------------
-    // Mobile Option A helper
-    // -----------------------------
-    function isMobileUA(){
-      return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-    }
-
-    function openMobileModal(){
-      $("mobileModal").style.display = "flex";
-    }
-    function closeMobileModal(){
-      $("mobileModal").style.display = "none";
-    }
-
-    // -----------------------------
-    // UI hooks
-    // -----------------------------
-    $("btnLogin").onclick = async () => {
-      try { await loginWithSignature(); }
-      catch (e) { showNotice("bad", friendlyError(e)); log("LOGIN ERROR: " + friendlyError(e)); }
-    };
-
-    $("btnLogout").onclick = () => logout();
-
-    $("btnRefresh").onclick = async () => { try { await readAssetCount(); } catch (e) { showNotice("bad", friendlyError(e)); } };
-
-    $("btnWhoAmI").onclick = async () => {
-      try {
-        const a = await signer.getAddress();
-        showNotice("ok", "You are logged in as: " + a);
-      } catch (e) { showNotice("bad", "Not logged in."); }
-    };
-
-    $("btnAssetCount").onclick = async () => { try { await readAssetCount(); } catch (e) { showNotice("bad", friendlyError(e)); } };
-    $("btnReadAsset").onclick = async () => { try { await readAsset(); } catch (e) { showNotice("bad", friendlyError(e)); } };
-
-    $("btnIssuerAvail").onclick = async () => { try { await readIssuerAvail(); } catch (e) { showNotice("bad", friendlyError(e)); } };
-    $("btnContractBal").onclick = async () => { try { await readContractBal(); } catch (e) { showNotice("bad", friendlyError(e)); } };
-    $("btnAssetSummary").onclick = async () => { try { await readAssetSummary(); } catch (e) { showNotice("bad", friendlyError(e)); } };
-    $("btnMyBal").onclick = async () => { try { await readMyBalanceOnAsset(); } catch (e) { showNotice("bad", friendlyError(e)); } };
-
-    $("btnCreate").onclick = async () => { try { await createAsset(); } catch (e) { showNotice("bad", friendlyError(e)); } };
-    $("btnBuy").onclick = async () => { try { await buyShares(); } catch (e) { showNotice("bad", friendlyError(e)); } };
-    $("btnTransfer").onclick = async () => { try { await transferShares(); } catch (e) { showNotice("bad", friendlyError(e)); } };
-
-    $("btnList").onclick = async () => { try { await listSharesForSale(); } catch (e) { showNotice("bad", friendlyError(e)); } };
-    $("btnCancelList").onclick = async () => { try { await cancelListing(); } catch (e) { showNotice("bad", friendlyError(e)); } };
-    $("btnReadListing").onclick = async () => { try { await readListing(); } catch (e) { showNotice("bad", friendlyError(e)); } };
-    $("btnBuyListing").onclick = async () => { try { await buyFromListing(); } catch (e) { showNotice("bad", friendlyError(e)); } };
-
-    $("btnFund").onclick = async () => { try { await fundContract(); } catch (e) { showNotice("bad", friendlyError(e)); } };
-    $("btnSellBuyback").onclick = async () => { try { await sellSharesBuyback(); } catch (e) { showNotice("bad", friendlyError(e)); } };
-
-    $("btnOwners").onclick = async () => { try { await getOwners(); } catch (e) { showNotice("bad", friendlyError(e)); } };
-    $("btnTop10").onclick = async () => { try { await getTop10(); } catch (e) { showNotice("bad", friendlyError(e)); } };
-    $("btnBalance").onclick = async () => { try { await checkBalance(); } catch (e) { showNotice("bad", friendlyError(e)); } };
-
-    $("btnCopyMyAddr").onclick = async () => {
-      try {
-        const a = await signer.getAddress();
-        await navigator.clipboard.writeText(a);
-        showNotice("ok", "Copied your address ✅");
-      } catch (e) { showNotice("bad", "Copy failed. Try manual copy from MetaMask."); }
-    };
-
-    $("btnPasteMe").onclick = async () => {
-      const a = await signer.getAddress();
-      $("tTo").value = a;
-      showNotice("ok", "Pasted your address into 'To Address'.");
-    };
-
-    $("btnOpenFaucet").onclick = () => {
-      alert("Open a Sepolia faucet (example: Alchemy Sepolia faucet / sepoliafaucet.com).");
-    };
-
-    // Topbar helpers
-    $("btnScrollTop").onclick = () => window.scrollTo({ top: 0, behavior: "smooth" });
-    $("btnMobileHelp").onclick = () => openMobileModal();
-
-    // Modal buttons
-    $("btnCloseMobile").onclick = () => closeMobileModal();
-    $("btnDismissMobile").onclick = () => closeMobileModal();
-    $("btnCopyUrl").onclick = async () => {
-      try{
-        await navigator.clipboard.writeText(location.href);
-        showNotice("ok", "Copied page URL ✅ Open it inside MetaMask Mobile Browser.");
-        closeMobileModal();
-      }catch(e){
-        showNotice("warn", "Could not copy URL. Manually copy from address bar.");
-      }
-    };
-    $("mobileModal").addEventListener("click", (e)=>{
-      if (e.target.id === "mobileModal") closeMobileModal();
-    });
-
-    // Auto reload on account/network change
-    if (window.ethereum) {
-      window.ethereum.on("accountsChanged", () => location.reload());
-      window.ethereum.on("chainChanged", () => location.reload());
-    }
-
-    // Initial UI state
-    enableActions(false);
-    setPill("netPill", "Network: Not checked", "warn");
     setPill("accPill", "Wallet: Not connected", "warn");
     setPill("loginPill", "Login: Not verified", "warn");
-    setPill("contractPill", "Contract: Not set", "warn");
-    showNotice("warn", "Step 1: Click 'Login with MetaMask' to start.");
 
-    // Section observer for nav highlight
-    watchSections();
-    setActiveNav("sec-dashboard");
+    enableProtectedActions(false);
+    showNotice("warn", "Logged out. Click 'Login with MetaMask' to continue.");
+    log("Logged out.");
+  }
 
-    // Try restore session
-    tryRestoreSession();
+  async function tryRestoreSession() {
+    try {
+      const raw = localStorage.getItem(SESSION_KEY);
+      if (!raw || !window.ethereum) return;
 
-    // Option A auto-help: on mobile + no ethereum injected, show modal
-    window.addEventListener("load", ()=>{
-      if (isMobileUA() && !window.ethereum) {
-        openMobileModal();
+      const s = JSON.parse(raw);
+      if (!s || !s.address || !s.signature || !s.message) return;
+
+      const accounts = await window.ethereum.request({ method: "eth_accounts" });
+      if (!accounts || accounts.length === 0) return;
+
+      const current = accounts[0];
+      if (current.toLowerCase() !== s.address.toLowerCase()) return;
+
+      await ensureSetup();
+      provider = new ethers.providers.Web3Provider(window.ethereum);
+      signer = provider.getSigner();
+
+      const chainId = await getChainId();
+      if (chainId !== SEPOLIA_CHAIN_ID) {
+        setPill("netPill", "Network: Wrong (" + chainId + ")", "warn");
+        setPill("accPill", "Wallet: " + shortAddr(current), "ok");
+        setPill("loginPill", "Login: Saved (switch network)", "warn");
+        showNotice("warn", "Session found, but wrong network. Switch to Sepolia then login again.");
+        enableProtectedActions(false);
+        return;
       }
-    });
-  </script>
-</body>
 
+      await checkNetwork();
+
+      const recovered = ethers.utils.verifyMessage(s.message, s.signature);
+      if (recovered.toLowerCase() !== current.toLowerCase()) {
+        localStorage.removeItem(SESSION_KEY);
+        return;
+      }
+
+      currentAccount = current;
+      setPill("accPill", "Wallet: " + shortAddr(currentAccount), "ok");
+      setPill("loginPill", "Login: Verified ✅", "ok");
+      setPill("contractPill", "Contract: " + shortAddr(CONTRACT_ADDRESS), "ok");
+
+      contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+      enableProtectedActions(true);
+
+      showNotice("ok", "Welcome back ✅ Session restored.");
+      log("Session restored: " + currentAccount);
+    } catch (_) {}
+  }
+
+  async function txWrap(txPromise, outId, label) {
+    try {
+      $(outId).textContent = label + ": sending transaction…";
+      const tx = await txPromise;
+      $(outId).textContent = label + ": tx sent\n" + tx.hash;
+
+      const rec = await tx.wait();
+      $(outId).textContent = label + ": confirmed ✅\nTx: " + tx.hash + "\nBlock: " + rec.blockNumber;
+      return rec;
+    } catch (e) {
+      const f = friendlyError(e);
+      $(outId).textContent = label + ": ERROR ❌\n" + f;
+      showNotice("bad", f);
+      log("ERROR (" + label + "): " + f);
+      throw e;
+    }
+  }
+
+  // -----------------------------
+  // READ
+  // -----------------------------
+  async function readAssetCount() {
+    await checkNetwork();
+    const c = await contract.assetCount();
+    $("assetCountVal").textContent = c.toString();
+  }
+
+  async function readAsset() {
+    await checkNetwork();
+    const id = $("readAssetId").value.trim();
+    if (!id) return $("assetOut").textContent = "Enter asset ID";
+    const a = await contract.assets(id);
+    $("assetOut").textContent = JSON.stringify({
+      id: a.id.toString(),
+      name: a.name,
+      location: a.location,
+      metadataURI: a.metadataURI,
+      totalShares: a.totalShares.toString(),
+      pricePerShareWei: a.pricePerShareWei.toString(),
+      issuer: a.issuer,
+      active: a.active
+    }, null, 2);
+  }
+
+  async function readIssuerAvail() {
+    await checkNetwork();
+    const assetId = $("xAssetId").value.trim();
+    if (!assetId) return $("extraOut").textContent = "Enter Asset ID";
+    const v = await contract.availableIssuerShares(assetId);
+    $("extraOut").textContent = `Issuer shares left for asset ${assetId}: ${v.toString()}`;
+  }
+
+  async function readContractBal() {
+    await checkNetwork();
+    const v = await contract.contractBalance();
+    $("extraOut").textContent = `Contract ETH balance: ${ethers.utils.formatEther(v)} ETH`;
+  }
+
+  async function readAssetSummary() {
+    await checkNetwork();
+    const assetId = $("xAssetId").value.trim();
+    if (!assetId) return $("extraOut").textContent = "Enter Asset ID";
+    const r = await contract.getAssetSummary(assetId);
+    $("extraOut").textContent = JSON.stringify({
+      id: r[0].toString(),
+      name: r[1],
+      location: r[2],
+      totalShares: r[3].toString(),
+      pricePerShareWei: r[4].toString(),
+      issuer: r[5],
+      active: r[6]
+    }, null, 2);
+  }
+
+  async function readMyBalanceOnAsset() {
+    await checkNetwork();
+    const assetId = $("xAssetId").value.trim();
+    if (!assetId) return $("extraOut").textContent = "Enter Asset ID";
+    const my = await signer.getAddress();
+    const bal = await contract.balances(assetId, my);
+    $("extraOut").textContent = `Your shares on asset ${assetId}: ${bal.toString()}\n(${my})`;
+  }
+
+  // -----------------------------
+  // WRITE
+  // -----------------------------
+  async function createAsset() {
+    await checkNetwork();
+    const name = $("cName").value.trim();
+    const loc = $("cLoc").value.trim();
+    const uri = $("cUri").value.trim();
+    const shares = $("cShares").value.trim();
+    const priceWei = $("cPriceWei").value.trim();
+
+    if (!name || !loc || !shares || !priceWei) {
+      return showNotice("warn", "Please fill Name, Location, Total Shares, Price Per Share.");
+    }
+
+    await txWrap(contract.createAsset(name, loc, uri, shares, priceWei), "createOut", "Create Asset");
+    await readAssetCount();
+  }
+
+  async function buyShares() {
+    await checkNetwork();
+    const assetId = $("bAssetId").value.trim();
+    const shares = $("bShares").value.trim();
+    if (!assetId || !shares) return showNotice("warn", "Enter Asset ID and Shares.");
+
+    const a = await contract.assets(assetId);
+    const costWei = ethers.BigNumber.from(shares).mul(a.pricePerShareWei);
+
+    await txWrap(contract.buyShares(assetId, shares, { value: costWei }), "buyOut", "Buy Shares (Primary)");
+  }
+
+  async function transferShares() {
+    await checkNetwork();
+    const assetId = $("tAssetId").value.trim();
+    const to = $("tTo").value.trim();
+    const shares = $("tShares").value.trim();
+    if (!assetId || !to || !shares) return showNotice("warn", "Enter Asset ID, Receiver Address, Shares.");
+
+    await txWrap(contract.transferShares(assetId, to, shares), "transferOut", "Transfer");
+  }
+
+  async function listSharesForSale() {
+    await checkNetwork();
+    const assetId = $("lAssetId").value.trim();
+    const shares = $("lShares").value.trim();
+    const priceWei = $("lPriceWei").value.trim();
+
+    if (!assetId || !shares || !priceWei) return showNotice("warn", "Enter Asset ID, Shares and Price.");
+    await txWrap(contract.listSharesForSale(assetId, shares, priceWei), "listOut", "List Shares");
+  }
+
+  async function cancelListing() {
+    await checkNetwork();
+    const assetId = $("lAssetId").value.trim();
+    if (!assetId) return showNotice("warn", "Enter Asset ID to cancel listing.");
+    await txWrap(contract.cancelListing(assetId), "listOut", "Cancel Listing");
+  }
+
+  async function readListing() {
+    await checkNetwork();
+    const assetId = $("blAssetId").value.trim();
+    const seller = $("blSeller").value.trim();
+    if (!assetId || !seller) return showNotice("warn", "Enter Asset ID and Seller address.");
+    const L = await contract.listings(assetId, seller);
+    $("buyListOut").textContent = JSON.stringify({
+      shares: L.shares.toString(),
+      pricePerShareWei: L.pricePerShareWei.toString(),
+      active: L.active
+    }, null, 2);
+  }
+
+  async function buyFromListing() {
+    await checkNetwork();
+    const assetId = $("blAssetId").value.trim();
+    const seller = $("blSeller").value.trim();
+    const shares = $("blShares").value.trim();
+    if (!assetId || !seller || !shares) return showNotice("warn", "Enter Asset ID, Seller, Shares.");
+
+    const L = await contract.listings(assetId, seller);
+    if (!L.active) return showNotice("warn", "This listing is not active.");
+
+    const costWei = ethers.BigNumber.from(shares).mul(L.pricePerShareWei);
+    await txWrap(contract.buyListedShares(assetId, seller, shares, { value: costWei }), "buyListOut", "Buy From Listing");
+  }
+
+  async function fundContract() {
+    await checkNetwork();
+    const eth = $("fEth").value.trim();
+    if (!eth) return showNotice("warn", "Enter ETH amount (example 0.01).");
+    const valueWei = ethers.utils.parseEther(eth);
+    await txWrap(contract.fundContract({ value: valueWei }), "fundOut", "Fund Contract");
+  }
+
+  async function sellSharesBuyback() {
+    await checkNetwork();
+    const assetId = $("sAssetId").value.trim();
+    const shares = $("sShares").value.trim();
+    if (!assetId || !shares) return showNotice("warn", "Enter Asset ID and Shares.");
+    await txWrap(contract.sellSharesBuyback(assetId, shares), "sellOut", "Sell Buyback");
+  }
+
+  async function getOwners() {
+    await checkNetwork();
+    const assetId = $("oAssetId").value.trim();
+    if (!assetId) return showNotice("warn", "Enter Asset ID.");
+    const owners = await contract.getOwners(assetId);
+    $("ownersOut").textContent = owners.map((a, i) => `${i + 1}. ${a}`).join("\n");
+  }
+
+  async function getTop10() {
+    await checkNetwork();
+    const assetId = $("oAssetId").value.trim();
+    if (!assetId) return showNotice("warn", "Enter Asset ID.");
+    const res = await contract.getTop10Beneficiaries(assetId);
+    const addrs = res[0], shares = res[1];
+    let out = ["Top 10 Beneficiaries:"];
+    for (let i = 0; i < addrs.length; i++) out.push(`${i + 1}. ${addrs[i]} → ${shares[i].toString()} shares`);
+    $("ownersOut").textContent = out.join("\n");
+  }
+
+  async function checkBalance() {
+    await checkNetwork();
+    const assetId = $("balAssetId").value.trim();
+    const addr = $("balAddr").value.trim();
+    if (!assetId || !addr) return showNotice("warn", "Enter Asset ID and Address.");
+    const bal = await contract.balances(assetId, addr);
+    $("balOut").textContent = `${addr}\nAsset ${assetId} balance: ${bal.toString()} shares`;
+  }
+
+  // -----------------------------
+  // Navigation active state
+  // -----------------------------
+  function setActiveNav(sectionId){
+    document.querySelectorAll(".navLink").forEach(a=>{
+      a.classList.toggle("active", a.dataset.sec === sectionId);
+    });
+  }
+
+  function watchSections(){
+    const sections = [
+      "sec-dashboard","sec-read","sec-issuer","sec-primary","sec-transfer","sec-secondary","sec-liquidity","sec-analytics","sec-debug"
+    ].map(id => document.getElementById(id));
+
+    const obs = new IntersectionObserver((entries)=>{
+      const visible = entries
+        .filter(e=>e.isIntersecting)
+        .sort((a,b)=>b.intersectionRatio - a.intersectionRatio)[0];
+      if (visible) setActiveNav(visible.target.id);
+    }, { root: null, threshold: [0.12, 0.18, 0.25, 0.35] });
+
+    sections.forEach(s=>s && obs.observe(s));
+  }
+
+  // -----------------------------
+  // Mobile Option A helper
+  // -----------------------------
+  function isMobileUA(){
+    return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  }
+
+  function openMobileModal(){
+    $("mobileModal").style.display = "flex";
+  }
+  function closeMobileModal(){
+    $("mobileModal").style.display = "none";
+  }
+
+  // -----------------------------
+  // UI hooks
+  // -----------------------------
+  $("btnLogin").onclick = async () => {
+    try { await loginWithSignature(); }
+    catch (_) { /* already handled inside loginWithSignature */ }
+  };
+
+  $("btnLogout").onclick = () => logout();
+
+  $("btnRefresh").onclick = async () => { try { await readAssetCount(); } catch (e) { showNotice("bad", friendlyError(e)); } };
+
+  $("btnWhoAmI").onclick = async () => {
+    try {
+      const a = await signer.getAddress();
+      showNotice("ok", "You are logged in as: " + a);
+    } catch (e) { showNotice("bad", "Not logged in."); }
+  };
+
+  $("btnAssetCount").onclick = async () => { try { await readAssetCount(); } catch (e) { showNotice("bad", friendlyError(e)); } };
+  $("btnReadAsset").onclick = async () => { try { await readAsset(); } catch (e) { showNotice("bad", friendlyError(e)); } };
+
+  $("btnIssuerAvail").onclick = async () => { try { await readIssuerAvail(); } catch (e) { showNotice("bad", friendlyError(e)); } };
+  $("btnContractBal").onclick = async () => { try { await readContractBal(); } catch (e) { showNotice("bad", friendlyError(e)); } };
+  $("btnAssetSummary").onclick = async () => { try { await readAssetSummary(); } catch (e) { showNotice("bad", friendlyError(e)); } };
+  $("btnMyBal").onclick = async () => { try { await readMyBalanceOnAsset(); } catch (e) { showNotice("bad", friendlyError(e)); } };
+
+  $("btnCreate").onclick = async () => { try { await createAsset(); } catch (e) { showNotice("bad", friendlyError(e)); } };
+  $("btnBuy").onclick = async () => { try { await buyShares(); } catch (e) { showNotice("bad", friendlyError(e)); } };
+  $("btnTransfer").onclick = async () => { try { await transferShares(); } catch (e) { showNotice("bad", friendlyError(e)); } };
+
+  $("btnList").onclick = async () => { try { await listSharesForSale(); } catch (e) { showNotice("bad", friendlyError(e)); } };
+  $("btnCancelList").onclick = async () => { try { await cancelListing(); } catch (e) { showNotice("bad", friendlyError(e)); } };
+  $("btnReadListing").onclick = async () => { try { await readListing(); } catch (e) { showNotice("bad", friendlyError(e)); } };
+  $("btnBuyListing").onclick = async () => { try { await buyFromListing(); } catch (e) { showNotice("bad", friendlyError(e)); } };
+
+  $("btnFund").onclick = async () => { try { await fundContract(); } catch (e) { showNotice("bad", friendlyError(e)); } };
+  $("btnSellBuyback").onclick = async () => { try { await sellSharesBuyback(); } catch (e) { showNotice("bad", friendlyError(e)); } };
+
+  $("btnOwners").onclick = async () => { try { await getOwners(); } catch (e) { showNotice("bad", friendlyError(e)); } };
+  $("btnTop10").onclick = async () => { try { await getTop10(); } catch (e) { showNotice("bad", friendlyError(e)); } };
+  $("btnBalance").onclick = async () => { try { await checkBalance(); } catch (e) { showNotice("bad", friendlyError(e)); } };
+
+  $("btnCopyMyAddr").onclick = async () => {
+    try {
+      const a = await signer.getAddress();
+      await navigator.clipboard.writeText(a);
+      showNotice("ok", "Copied your address ✅");
+    } catch (e) { showNotice("bad", "Copy failed. Try manual copy from MetaMask."); }
+  };
+
+  $("btnPasteMe").onclick = async () => {
+    const a = await signer.getAddress();
+    $("tTo").value = a;
+    showNotice("ok", "Pasted your address into 'To Address'.");
+  };
+
+  $("btnOpenFaucet").onclick = () => {
+    alert("Open a Sepolia faucet (example: Alchemy Sepolia faucet / sepoliafaucet.com).");
+  };
+
+  // Topbar helpers
+  $("btnScrollTop").onclick = () => window.scrollTo({ top: 0, behavior: "smooth" });
+  $("btnMobileHelp").onclick = () => openMobileModal();
+
+  // Modal buttons
+  $("btnCloseMobile").onclick = () => closeMobileModal();
+  $("btnDismissMobile").onclick = () => closeMobileModal();
+  $("btnCopyUrl").onclick = async () => {
+    try{
+      await navigator.clipboard.writeText(location.href);
+      showNotice("ok", "Copied page URL ✅ Open it inside MetaMask Mobile Browser.");
+      closeMobileModal();
+    }catch(e){
+      showNotice("warn", "Could not copy URL. Manually copy from address bar.");
+    }
+  };
+  $("mobileModal").addEventListener("click", (e)=>{
+    if (e.target.id === "mobileModal") closeMobileModal();
+  });
+
+  // ✅ UPDATED: no page reload; reset cleanly instead
+  if (window.ethereum) {
+    window.ethereum.on("accountsChanged", () => {
+      logout();
+      showNotice("warn", "Account changed. Please login again.");
+    });
+    window.ethereum.on("chainChanged", () => {
+      logout();
+      showNotice("warn", "Network changed. Please login again on Sepolia.");
+    });
+  }
+
+  // Initial UI state
+  enableProtectedActions(false);
+  setPill("netPill", "Network: Not checked", "warn");
+  setPill("accPill", "Wallet: Not connected", "warn");
+  setPill("loginPill", "Login: Not verified", "warn");
+  setPill("contractPill", "Contract: Not set", "warn");
+  showNotice("warn", "Step 1: Click 'Login with MetaMask' to start.");
+
+  // Section observer for nav highlight
+  watchSections();
+  setActiveNav("sec-dashboard");
+
+  // Try restore session
+  tryRestoreSession();
+
+  // Option A auto-help: on mobile + no ethereum injected, show modal
+  window.addEventListener("load", ()=>{
+    if (isMobileUA() && !window.ethereum) {
+      openMobileModal();
+    }
+  });
+</script>
+</body>
 </html>
