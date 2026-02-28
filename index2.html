@@ -1,0 +1,1843 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Real Estate Tokenization (Sepolia)</title>
+  <link rel="stylesheet" href="styles2.css">
+</head>
+
+<body>
+  <!-- Sticky Topbar (Pro style) -->
+  <header class="topbar">
+    <div class="topbarRow">
+      <div class="brand">
+        <div>
+          <div class="brandTitle"><span>🏠 Real Estate Tokenization</span></div>
+          <div class="brandSub">Sepolia • Fractional Ownership • Marketplace</div>
+        </div>
+      </div>
+
+      <div class="topActions">
+        <button class="iconBtn secondary" id="btnMobileHelp">Mobile Guide</button>
+        <button class="iconBtn secondary" id="btnScrollTop">Top</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Keep h1 for semantics but hidden by CSS -->
+    <h1>🏠 Real Estate Tokenization DApp (Sepolia)</h1>
+
+    <div class="layout">
+
+      <!-- LEFT NAVIGATION (Binance-like) -->
+      <nav class="nav" aria-label="Primary">
+        <div class="navCard">
+          <div class="navHeader">
+            <h2>Navigation</h2>
+          </div>
+
+          <ul class="navList">
+            <li><a class="navLink" href="#sec-dashboard" data-sec="sec-dashboard">Dashboard <span class="navBadge">Login</span></a></li>
+            <li><a class="navLink" href="#sec-read" data-sec="sec-read">Explore <span class="navBadge">Read</span></a></li>
+            <li><a class="navLink" href="#sec-issuer" data-sec="sec-issuer">Issuer <span class="navBadge">Create</span></a></li>
+            <li><a class="navLink" href="#sec-primary" data-sec="sec-primary">Primary Sale <span class="navBadge">Buy</span></a></li>
+            <li><a class="navLink" href="#sec-transfer" data-sec="sec-transfer">Transfer <span class="navBadge">Send</span></a></li>
+            <li><a class="navLink" href="#sec-secondary" data-sec="sec-secondary">Secondary Market <span class="navBadge">Trade</span></a></li>
+            <li><a class="navLink" href="#sec-liquidity" data-sec="sec-liquidity">Liquidity <span class="navBadge">Fund/Buyback</span></a></li>
+            <li><a class="navLink" href="#sec-analytics" data-sec="sec-analytics">Analytics <span class="navBadge">Owners</span></a></li>
+            <li><a class="navLink" href="#sec-debug" data-sec="sec-debug">Debug <span class="navBadge">Logs</span></a></li>
+          </ul>
+
+          <div class="helpBlock">
+            <div class="small muted">
+              Tip: Use the menu to jump to sections like a professional exchange dashboard.
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <!-- MAIN -->
+      <main class="main">
+
+        <!-- DASHBOARD -->
+        <section class="section" id="sec-dashboard">
+          <div class="card">
+            <h2>Dashboard • Status & Login</h2>
+
+            <div class="pillsRow">
+              <span class="pill warn" id="netPill">Network: Not checked</span>
+              <span class="pill warn" id="accPill">Wallet: Not connected</span>
+              <span class="pill warn" id="loginPill">Login: Not verified</span>
+              <span class="pill warn" id="contractPill">Contract: Not set</span>
+            </div>
+
+            <div class="grid2">
+              <button id="btnLogin" class="action">Login with MetaMask</button>
+              <button class="secondary" id="btnLogout" disabled>Logout</button>
+            </div>
+
+            <div class="grid2">
+              <button class="secondary" id="btnRefresh" disabled>Refresh Read Data</button>
+              <button class="secondary" id="btnWhoAmI" disabled>Who am I?</button>
+            </div>
+
+            <div class="muted small">
+              ✅ Login uses <b>wallet signature</b> (no password, no gas).<br/>
+              📱 Mobile: open this site inside <b>MetaMask Mobile → Browser</b> (Option A).<br/>
+              💡 Transactions need <b>Sepolia ETH</b> for gas.
+            </div>
+
+            <div class="notice" id="noticeBox" style="display:none;"></div>
+          </div>
+
+          <div class="card">
+            <h2>Quick Start</h2>
+            <ol class="steps">
+              <li>Click <b>Login with MetaMask</b> (connect + sign message)</li>
+              <li>Go to <b>Explore</b> → click <b>Get assetCount</b></li>
+              <li>Read an asset by entering Asset ID → <b>Read assets(assetId)</b></li>
+              <li>Buy shares in <b>Primary Sale</b> or trade in <b>Secondary Market</b></li>
+              <li>For buyback, add liquidity using <b>Fund Contract</b> first</li>
+            </ol>
+            <div class="small muted">Tip: If buyback fails, contract has no ETH. Fund it first.</div>
+          </div>
+        </section>
+
+        <!-- EXPLORE / READ -->
+        <section class="section" id="sec-read">
+          <div class="row">
+            <div class="card">
+              <h2>Explore • Asset Count & Asset Details</h2>
+              <div class="grid2">
+                <div>
+                  <button class="secondary action" id="btnAssetCount" disabled>Get assetCount</button>
+                  <div class="muted">assetCount: <b id="assetCountVal">-</b></div>
+                </div>
+                <div>
+                  <label>Asset ID</label>
+                  <input id="readAssetId" placeholder="e.g., 1" />
+                  <button class="secondary action" id="btnReadAsset" disabled>Read assets(assetId)</button>
+                </div>
+              </div>
+              <pre id="assetOut">Output will appear here…</pre>
+            </div>
+
+            <div class="card">
+              <h2>Explore • Extra Helpers</h2>
+              <div class="grid3">
+                <div>
+                  <label>Asset ID</label>
+                  <input id="xAssetId" placeholder="1" />
+                </div>
+                <div>
+                  <button class="secondary action" id="btnIssuerAvail" disabled>Issuer Shares Left</button>
+                </div>
+                <div>
+                  <button class="secondary action" id="btnContractBal" disabled>Contract ETH Balance</button>
+                </div>
+              </div>
+
+              <div class="grid2">
+                <button class="secondary action" id="btnAssetSummary" disabled>Asset Summary</button>
+                <button class="secondary action" id="btnMyBal" disabled>My Share Balance</button>
+              </div>
+
+              <pre id="extraOut">—</pre>
+            </div>
+          </div>
+        </section>
+
+        <!-- ISSUER / CREATE -->
+        <section class="section" id="sec-issuer">
+          <div class="card">
+            <h2>Issuer • Create Asset</h2>
+            <div class="small muted">Only the creator becomes the <b>Issuer</b> and owns 100% shares initially.</div>
+
+            <div class="grid2">
+              <div>
+                <label>Name</label>
+                <input id="cName" placeholder="Colombo Apartment A3" />
+              </div>
+              <div>
+                <label>Location</label>
+                <input id="cLoc" placeholder="Colombo" />
+              </div>
+            </div>
+
+            <label>Metadata URI (Optional)</label>
+            <input id="cUri" placeholder="ipfs://... (or any text)" />
+
+            <div class="grid2">
+              <div>
+                <label>Total Shares (e.g., 1000)</label>
+                <input id="cShares" placeholder="1000" />
+              </div>
+              <div>
+                <label>Price Per Share (WEI)</label>
+                <input id="cPriceWei" placeholder="1000000000000000  (0.001 ETH)" />
+                <div class="small muted">WEI converter: 0.001 ETH = 1000000000000000 wei</div>
+              </div>
+            </div>
+
+            <button class="action" id="btnCreate" disabled>Create Asset</button>
+            <pre id="createOut">—</pre>
+          </div>
+        </section>
+
+        <!-- PRIMARY SALE -->
+        <section class="section" id="sec-primary">
+          <div class="card">
+            <h2>Primary Sale • Buy Shares (from Issuer)</h2>
+            <div class="small muted">Buys shares from the issuer at official pricePerShareWei (auto payment).</div>
+
+            <div class="grid2">
+              <div>
+                <label>Asset ID</label>
+                <input id="bAssetId" placeholder="1" />
+              </div>
+              <div>
+                <label>Shares to Buy</label>
+                <input id="bShares" placeholder="10" />
+              </div>
+            </div>
+
+            <button class="action" id="btnBuy" disabled>Buy Shares (Auto Payment)</button>
+            <pre id="buyOut">—</pre>
+          </div>
+        </section>
+
+        <!-- TRANSFER -->
+        <section class="section" id="sec-transfer">
+          <div class="card">
+            <h2>Transfer • Send Shares</h2>
+            <div class="small muted">Move shares to another wallet address (no payment).</div>
+
+            <div class="grid3">
+              <div>
+                <label>Asset ID</label>
+                <input id="tAssetId" placeholder="1" />
+              </div>
+              <div>
+                <label>To Address</label>
+                <input id="tTo" placeholder="0x..." />
+                <button class="secondary" id="btnPasteMe" disabled>Paste My Address</button>
+              </div>
+              <div>
+                <label>Shares</label>
+                <input id="tShares" placeholder="3" />
+              </div>
+            </div>
+
+            <button class="action" id="btnTransfer" disabled>Transfer</button>
+            <pre id="transferOut">—</pre>
+          </div>
+        </section>
+
+        <!-- SECONDARY MARKET -->
+        <section class="section" id="sec-secondary">
+          <div class="row">
+            <div class="card">
+              <h2>Secondary Market • List Shares</h2>
+              <div class="small muted">Choose your own price per share like a marketplace listing.</div>
+
+              <div class="grid3">
+                <div>
+                  <label>Asset ID</label>
+                  <input id="lAssetId" placeholder="1" />
+                </div>
+                <div>
+                  <label>Shares to List</label>
+                  <input id="lShares" placeholder="5" />
+                </div>
+                <div>
+                  <label>Price Per Share (WEI)</label>
+                  <input id="lPriceWei" placeholder="1200000000000000" />
+                </div>
+              </div>
+
+              <div class="grid2">
+                <button class="action" id="btnList" disabled>List Shares</button>
+                <button class="secondary action" id="btnCancelList" disabled>Cancel My Listing</button>
+              </div>
+
+              <pre id="listOut">—</pre>
+            </div>
+
+            <div class="card">
+              <h2>Secondary Market • Buy From Listing</h2>
+              <div class="small muted">Buy shares from another user’s listing (auto payment).</div>
+
+              <div class="grid3">
+                <div>
+                  <label>Asset ID</label>
+                  <input id="blAssetId" placeholder="1" />
+                </div>
+                <div>
+                  <label>Seller Address</label>
+                  <input id="blSeller" placeholder="0x..." />
+                </div>
+                <div>
+                  <label>Shares to Buy</label>
+                  <input id="blShares" placeholder="2" />
+                </div>
+              </div>
+
+              <div class="grid2">
+                <button class="secondary action" id="btnReadListing" disabled>Read Listing</button>
+                <button class="action" id="btnBuyListing" disabled>Buy From Listing (Auto Payment)</button>
+              </div>
+
+              <pre id="buyListOut">—</pre>
+            </div>
+          </div>
+        </section>
+
+        <!-- LIQUIDITY -->
+        <section class="section" id="sec-liquidity">
+          <div class="row">
+            <div class="card">
+              <h2>Liquidity • Fund Contract</h2>
+              <div class="small muted">Contract needs ETH liquidity to pay buybacks.</div>
+
+              <label>Amount (ETH)</label>
+              <input id="fEth" placeholder="0.05" />
+              <button class="action" id="btnFund" disabled>Fund Contract</button>
+              <pre id="fundOut">—</pre>
+            </div>
+
+            <div class="card">
+              <h2>Liquidity • Sell Shares (Buyback)</h2>
+              <div class="small muted">Sell shares back to the contract at the official price.</div>
+
+              <div class="grid2">
+                <div>
+                  <label>Asset ID</label>
+                  <input id="sAssetId" placeholder="1" />
+                </div>
+                <div>
+                  <label>Shares to Sell</label>
+                  <input id="sShares" placeholder="2" />
+                </div>
+              </div>
+
+              <button class="danger action" id="btnSellBuyback" disabled>Sell Buyback</button>
+              <pre id="sellOut">—</pre>
+            </div>
+          </div>
+        </section>
+
+        <!-- ANALYTICS -->
+        <section class="section" id="sec-analytics">
+          <div class="row">
+            <div class="card">
+              <h2>Analytics • Owners + Top 10 Beneficiaries</h2>
+              <label>Asset ID</label>
+              <input id="oAssetId" placeholder="1" />
+
+              <div class="grid2">
+                <button class="secondary action" id="btnOwners" disabled>Get Owners</button>
+                <button class="secondary action" id="btnTop10" disabled>Get Top 10</button>
+              </div>
+              <pre id="ownersOut">—</pre>
+            </div>
+
+            <div class="card">
+              <h2>Analytics • Check Balance of Address</h2>
+              <div class="grid2">
+                <div>
+                  <label>Asset ID</label>
+                  <input id="balAssetId" placeholder="1" />
+                </div>
+                <div>
+                  <label>Address</label>
+                  <input id="balAddr" placeholder="0x..." />
+                </div>
+              </div>
+              <button class="secondary action" id="btnBalance" disabled>Check Balance</button>
+              <pre id="balOut">—</pre>
+            </div>
+          </div>
+        </section>
+
+        <!-- DEBUG -->
+        <section class="section" id="sec-debug">
+          <div class="card">
+            <h2>Debug • Logs</h2>
+            <pre id="log">Ready. Paste ABI in the code, then click Login with MetaMask.</pre>
+          </div>
+        </section>
+
+      </main>
+
+      <!-- RIGHT HELP PANEL -->
+      <aside class="help card" aria-label="Help panel">
+    
+        <h2>📘 Help / User Guide</h2>
+    
+      <div class="helpBlock">
+        <h3>🔐 Login (How it works)</h3>
+        <p class="muted small">
+          This DApp uses <b>wallet-based login</b>. You connect MetaMask and sign a message.
+          The signature proves you own the wallet (no password needed).
+        </p>
+        <p class="muted small">
+          If you logout, the saved session is removed from this browser only.
+        </p>
+      </div>
+
+      <div class="helpBlock">
+        <h3>1️⃣ What is an “Asset”?</h3>
+        <p class="muted small">
+          An asset represents a real-world property (for example: an apartment in Colombo).
+          Instead of one person owning 100%, we divide it into digital shares on the blockchain.
+        </p>
+        <p class="muted small">
+          <b>Why?</b> This allows fractional ownership — multiple investors can own small portions.
+          It increases accessibility and liquidity.
+        </p>
+        <p class="muted small">
+          <b>How?</b> When “Create Asset” is called, the smart contract:
+          <br>• Stores name, location, metadata
+          <br>• Sets totalShares
+          <br>• Assigns 100% shares to the issuer (creator)
+          <br>• Defines pricePerShareWei
+        </p>
+      </div>
+
+      <div class="helpBlock">
+        <h3>2️⃣ What is “Primary Sale”?</h3>
+        <p class="muted small">
+          Primary Sale means buying shares directly from the issuer (creator).
+        </p>
+        <p class="muted small">
+          <b>Why?</b> This is how the issuer initially raises capital for the property.
+        </p>
+        <p class="muted small">
+          <b>How?</b>
+          <br>• You enter Asset ID + Shares
+          <br>• The app automatically calculates ETH cost (shares × pricePerShareWei)
+          <br>• ETH is sent to the contract
+          <br>• Shares are transferred from issuer to buyer
+        </p>
+      </div>
+
+      <div class="helpBlock">
+        <h3>3️⃣ What is “Secondary Market”?</h3>
+        <p class="muted small">
+          The secondary market allows users to trade shares between themselves.
+        </p>
+        <p class="muted small">
+          <b>Why?</b> It creates liquidity. Investors can exit anytime without waiting for the issuer.
+        </p>
+        <p class="muted small">
+          <b>How?</b>
+          <br>• A holder lists shares with a custom price
+          <br>• Another user buys them
+          <br>• ETH goes directly to the seller
+          <br>• Shares transfer to the buyer
+        </p>
+      </div>
+
+      <div class="helpBlock">
+        <h3>4️⃣ What is “Transfer Shares”?</h3>
+        <p class="muted small">
+          This sends shares to another wallet without payment.
+        </p>
+        <p class="muted small">
+          <b>Why?</b> Useful for gifting, partnerships, or manual agreements.
+        </p>
+        <p class="muted small">
+          <b>How?</b>
+          <br>• Enter receiver wallet address
+          <br>• Contract updates internal balances mapping
+          <br>• Blockchain records the ownership change
+        </p>
+      </div>
+
+      <div class="helpBlock">
+        <h3>5️⃣ What is “Buyback”?</h3>
+        <p class="muted small">
+          Buyback allows investors to sell shares back to the contract at official price.
+        </p>
+        <p class="muted small">
+          <b>Why?</b> Provides guaranteed liquidity (exit option).
+        </p>
+        <p class="muted small">
+          <b>Important:</b> The contract must have ETH first.
+          Use “Fund Contract” if buyback fails.
+        </p>
+        <p class="muted small">
+          <b>How?</b>
+          <br>• Contract verifies your share balance
+          <br>• Calculates payment (shares × pricePerShareWei)
+          <br>• Sends ETH to your wallet
+          <br>• Shares return to issuer pool
+        </p>
+      </div>
+
+      <div class="helpBlock">
+        <h3>6️⃣ What is “Fund Contract”?</h3>
+        <p class="muted small">
+          This sends ETH into the smart contract.
+        </p>
+        <p class="muted small">
+          <b>Why?</b> Required so the contract can pay users during buyback.
+        </p>
+        <p class="muted small">
+          Think of it as adding liquidity to the system.
+        </p>
+      </div>
+
+      <div class="helpBlock">
+        <h3>7️⃣ Read Functions (Why They Matter)</h3>
+        <p class="muted small">
+          Read functions do NOT cost gas. They only fetch blockchain data.
+        </p>
+        <ul class="muted small">
+          <li><b>assetCount:</b> Shows total number of created assets</li>
+          <li><b>Read Asset:</b> Displays property details</li>
+          <li><b>My Share Balance:</b> Shows how many shares you own</li>
+          <li><b>Top 10 Beneficiaries:</b> Shows largest shareholders</li>
+          <li><b>Contract Balance:</b> Shows ETH available for buyback</li>
+        </ul>
+      </div>
+
+      <div class="helpBlock">
+        <h3>⚙️ Why MetaMask is Required?</h3>
+        <p class="muted small">
+          MetaMask connects your wallet to the blockchain.
+        </p>
+        <p class="muted small">
+          <b>Why?</b> Blockchain transactions must be signed by your private key.
+          MetaMask securely signs transactions without exposing your key.
+        </p>
+      </div>
+
+      <div class="helpBlock">
+        <h3>🚨 Common Errors & Solutions</h3>
+        <ul class="muted small">
+          <li><b>No MetaMask popup:</b> Refresh page → Click Connect again</li>
+          <li><b>Wrong network:</b> Switch to Sepolia Testnet</li>
+          <li><b>Insufficient ETH:</b> Use Sepolia Faucet</li>
+          <li><b>Buyback fails:</b> Fund the contract first</li>
+          <li><b>Transaction rejected:</b> You clicked "Reject" in MetaMask</li>
+        </ul>
+      </div>
+
+      <div class="helpBlock">
+        <button class="secondary" id="btnCopyMyAddr" disabled>Copy My Address</button>
+        <button class="secondary" id="btnOpenFaucet">Open Sepolia Faucet</button>
+      </div>
+
+      <div class="small muted">
+        💡 This DApp demonstrates tokenized real estate, fractional ownership,
+        decentralized trading, and smart contract automation.
+      </div>
+      </aside>
+
+    </div>
+  </div>
+
+  <!-- Mobile Help Modal -->
+  <div class="modalBackdrop" id="mobileModal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mobileTitle">
+      <div class="modalHeader">
+        <h2 id="mobileTitle">📱 Use this DApp on Mobile (Option A)</h2>
+        <button class="secondary modalClose" id="btnCloseMobile">Close</button>
+      </div>
+
+      <div class="modalBody">
+        <p>
+          Mobile browsers (Chrome/Safari) do not support MetaMask extensions.
+          To use this DApp on your phone:
+        </p>
+        <p>
+          <b>1)</b> Install <b>MetaMask Mobile</b><br>
+          <b>2)</b> Open MetaMask → <b>Browser</b><br>
+          <b>3)</b> Open this DApp URL inside MetaMask Browser<br>
+          <b>4)</b> Tap <b>Login with MetaMask</b>
+        </p>
+        <p class="small muted">
+          Best practice: Host your DApp on HTTPS (GitHub Pages/Netlify/Vercel) instead of opening local file://.
+        </p>
+      </div>
+
+      <div class="modalActions">
+        <button class="action" id="btnCopyUrl">Copy This Page URL</button>
+        <button class="secondary" id="btnDismissMobile">I Understand</button>
+      </div>
+    </div>
+  </div>
+
+  
+ <aside class="help card">
+      
+    </aside>
+
+  <!-- Ethers v5 -->
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+
+  <script>
+    /************************************************************
+     * 1) CONTRACT ADDRESS (Sepolia deployed)
+     ************************************************************/
+    const CONTRACT_ADDRESS = "0x334335734862579f625F235f05198376Ac603e1D";
+
+    /************************************************************
+     * 2) ABI ARRAY HERE (from Remix -> Solidity Compiler -> ABI)
+     ************************************************************/
+    const ABI = [
+      
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "assetId",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "issuer",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "totalShares",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "pricePerShareWei",
+				"type": "uint256"
+			}
+		],
+		"name": "AssetCreated",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "assetId",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "bool",
+				"name": "active",
+				"type": "bool"
+			}
+		],
+		"name": "AssetStatusChanged",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "assetId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "seller",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "shares",
+				"type": "uint256"
+			}
+		],
+		"name": "buyListedShares",
+		"outputs": [],
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "assetId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "shares",
+				"type": "uint256"
+			}
+		],
+		"name": "buyShares",
+		"outputs": [],
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "assetId",
+				"type": "uint256"
+			}
+		],
+		"name": "cancelListing",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amountWei",
+				"type": "uint256"
+			}
+		],
+		"name": "ContractFunded",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "location",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "metadataURI",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "totalShares",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "pricePerShareWei",
+				"type": "uint256"
+			}
+		],
+		"name": "createAsset",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "fundContract",
+		"outputs": [],
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "assetId",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "seller",
+				"type": "address"
+			}
+		],
+		"name": "ListingCancelled",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "assetId",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "seller",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "shares",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "pricePerShareWei",
+				"type": "uint256"
+			}
+		],
+		"name": "ListingCreated",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "assetId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "shares",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "pricePerShareWei",
+				"type": "uint256"
+			}
+		],
+		"name": "listSharesForSale",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "assetId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "shares",
+				"type": "uint256"
+			}
+		],
+		"name": "sellSharesBuyback",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "assetId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bool",
+				"name": "active_",
+				"type": "bool"
+			}
+		],
+		"name": "setAssetActive",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "assetId",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "buyer",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "shares",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "paidWei",
+				"type": "uint256"
+			}
+		],
+		"name": "SharesPurchasedPrimary",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "assetId",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "seller",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "buyer",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "shares",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "paidWei",
+				"type": "uint256"
+			}
+		],
+		"name": "SharesPurchasedSecondary",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "assetId",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "seller",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "shares",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "receivedWei",
+				"type": "uint256"
+			}
+		],
+		"name": "SharesSoldBuyback",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "assetId",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "shares",
+				"type": "uint256"
+			}
+		],
+		"name": "SharesTransferred",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "assetId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "shares",
+				"type": "uint256"
+			}
+		],
+		"name": "transferShares",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"stateMutability": "payable",
+		"type": "receive"
+	},
+	{
+		"inputs": [],
+		"name": "assetCount",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "assets",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "id",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "location",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "metadataURI",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "totalShares",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "pricePerShareWei",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "issuer",
+				"type": "address"
+			},
+			{
+				"internalType": "bool",
+				"name": "active",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "assetId",
+				"type": "uint256"
+			}
+		],
+		"name": "availableIssuerShares",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "balances",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "contractBalance",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "assetId",
+				"type": "uint256"
+			}
+		],
+		"name": "getAssetSummary",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "id",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "location",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "totalShares",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "pricePerShareWei",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "issuer",
+				"type": "address"
+			},
+			{
+				"internalType": "bool",
+				"name": "active",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "assetId",
+				"type": "uint256"
+			}
+		],
+		"name": "getOwners",
+		"outputs": [
+			{
+				"internalType": "address[]",
+				"name": "owners",
+				"type": "address[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "assetId",
+				"type": "uint256"
+			}
+		],
+		"name": "getTop10Beneficiaries",
+		"outputs": [
+			{
+				"internalType": "address[]",
+				"name": "topAddr",
+				"type": "address[]"
+			},
+			{
+				"internalType": "uint256[]",
+				"name": "topShares",
+				"type": "uint256[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "listings",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "shares",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "pricePerShareWei",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bool",
+				"name": "active",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+    ];
+
+    const SEPOLIA_CHAIN_ID = 11155111;
+    const SEPOLIA_CHAIN_HEX = "0xaa36a7";
+
+    // Local session storage key
+    const SESSION_KEY = "re_token_dapp_session_v1";
+    const LOGIN_MESSAGE = "Login to Real Estate Tokenization DApp (Sepolia). This does NOT cost gas.";
+
+    let provider, signer, contract, currentAccount;
+
+    const $ = (id) => document.getElementById(id);
+
+    function log(msg) { $("log").textContent = msg + "\n\n" + $("log").textContent; }
+
+    function setPill(id, text, cls) {
+      const el = $(id);
+      el.textContent = text;
+      el.className = "pill " + (cls || "");
+    }
+
+    function shortAddr(a) { return a ? (a.slice(0, 6) + "..." + a.slice(-4)) : "-"; }
+
+    function showNotice(type, text) {
+      const box = $("noticeBox");
+      box.style.display = "block";
+      box.className = "notice " + type;
+      box.textContent = text;
+    }
+
+    function hideNotice() {
+      $("noticeBox").style.display = "none";
+    }
+
+    function enableActions(enabled) {
+      document.querySelectorAll(".action").forEach(btn => btn.disabled = !enabled);
+      $("btnRefresh").disabled = !enabled;
+      $("btnCopyMyAddr").disabled = !enabled;
+      $("btnPasteMe").disabled = !enabled;
+      $("btnLogout").disabled = !enabled;
+      $("btnWhoAmI").disabled = !enabled;
+    }
+
+    function friendlyError(e) {
+      const msg = (e && e.message) ? e.message : String(e);
+      if (msg.includes("User rejected")) return "You rejected the MetaMask request. Please try again.";
+      if (msg.includes("MetaMask not detected")) return "Wallet not detected. On mobile: open this in MetaMask Mobile → Browser.";
+      if (msg.includes("Wrong network")) return "Wrong network. Please switch MetaMask to Sepolia Testnet.";
+      if (msg.includes("insufficient funds")) return "Not enough Sepolia ETH for gas. Use faucet.";
+      if (msg.includes("Contract has insufficient ETH")) return "Buyback failed: contract has no ETH. Fund it first.";
+      if (msg.includes("ABI is empty")) return "ABI is missing. Paste the full ABI from Remix.";
+      return msg;
+    }
+
+    async function ensureSetup() {
+      if (!window.ethereum) throw new Error("MetaMask not detected. Install MetaMask (desktop) or use MetaMask Mobile Browser.");
+      if (!CONTRACT_ADDRESS || !CONTRACT_ADDRESS.startsWith("0x")) throw new Error("Invalid contract address.");
+      if (!Array.isArray(ABI) || ABI.length === 0) throw new Error("ABI is empty. Paste full ABI from Remix.");
+
+      provider = new ethers.providers.Web3Provider(window.ethereum);
+      signer = provider.getSigner();
+      setPill("contractPill", "Contract: " + shortAddr(CONTRACT_ADDRESS), "ok");
+    }
+
+    async function getChainId() {
+      const hex = await window.ethereum.request({ method: "eth_chainId" });
+      return parseInt(hex, 16);
+    }
+
+    async function switchToSepolia() {
+      try {
+        await window.ethereum.request({
+          method: "wallet_switchEthereumChain",
+          params: [{ chainId: SEPOLIA_CHAIN_HEX }]
+        });
+      } catch (err) {
+        if (err && err.code === 4902) {
+          await window.ethereum.request({
+            method: "wallet_addEthereumChain",
+            params: [{
+              chainId: SEPOLIA_CHAIN_HEX,
+              chainName: "Sepolia Test Network",
+              nativeCurrency: { name: "SepoliaETH", symbol: "SEP", decimals: 18 },
+              rpcUrls: ["https://rpc.sepolia.org"],
+              blockExplorerUrls: ["https://sepolia.etherscan.io"]
+            }]
+          });
+        } else {
+          throw new Error("Network switch rejected. Please switch to Sepolia manually.");
+        }
+      }
+    }
+
+    async function checkNetwork() {
+      const chainId = await getChainId();
+      if (chainId !== SEPOLIA_CHAIN_ID) {
+        setPill("netPill", "Network: Wrong (" + chainId + ")", "warn");
+        throw new Error("Wrong network. Switch MetaMask to Sepolia Testnet (11155111).");
+      }
+      setPill("netPill", "Network: Sepolia ✅", "ok");
+    }
+
+    // OPTION 1 LOGIN (Signature-based)
+    async function loginWithSignature() {
+      hideNotice();
+      enableActions(false);
+
+      await ensureSetup();
+
+      const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+      currentAccount = accounts[0];
+      setPill("accPill", "Wallet: " + shortAddr(currentAccount), "ok");
+      log("Wallet connected: " + currentAccount);
+
+      const chainIdBefore = await getChainId();
+      if (chainIdBefore !== SEPOLIA_CHAIN_ID) {
+        showNotice("warn", "Switching network to Sepolia… approve in wallet.");
+        await switchToSepolia();
+      }
+
+      provider = new ethers.providers.Web3Provider(window.ethereum);
+      signer = provider.getSigner();
+      await checkNetwork();
+
+      contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+
+      showNotice("warn", "Please sign the login message in MetaMask (free).");
+      const signature = await signer.signMessage(LOGIN_MESSAGE);
+
+      const recovered = ethers.utils.verifyMessage(LOGIN_MESSAGE, signature);
+      if (recovered.toLowerCase() !== currentAccount.toLowerCase()) {
+        setPill("loginPill", "Login: Failed", "bad");
+        throw new Error("Signature verification failed. Please try again.");
+      }
+
+      localStorage.setItem(SESSION_KEY, JSON.stringify({
+        address: currentAccount,
+        signature,
+        message: LOGIN_MESSAGE,
+        chainId: SEPOLIA_CHAIN_ID,
+        createdAt: Date.now()
+      }));
+
+      setPill("loginPill", "Login: Verified ✅", "ok");
+      enableActions(true);
+      showNotice("ok", "Login successful ✅ You can now use all features.");
+      log("Login verified (signature).");
+    }
+
+    function logout() {
+      localStorage.removeItem(SESSION_KEY);
+      setPill("accPill", "Wallet: Not connected", "warn");
+      setPill("loginPill", "Login: Not verified", "warn");
+      enableActions(false);
+      showNotice("warn", "Logged out. Click 'Login with MetaMask' to continue.");
+      log("Logged out.");
+    }
+
+    async function tryRestoreSession() {
+      try {
+        const raw = localStorage.getItem(SESSION_KEY);
+        if (!raw || !window.ethereum) return;
+
+        const s = JSON.parse(raw);
+        if (!s || !s.address || !s.signature || !s.message) return;
+
+        const accounts = await window.ethereum.request({ method: "eth_accounts" });
+        if (!accounts || accounts.length === 0) return;
+
+        const current = accounts[0];
+        if (current.toLowerCase() !== s.address.toLowerCase()) return;
+
+        await ensureSetup();
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+        signer = provider.getSigner();
+
+        const chainId = await getChainId();
+        if (chainId !== SEPOLIA_CHAIN_ID) {
+          setPill("netPill", "Network: Wrong (" + chainId + ")", "warn");
+          setPill("accPill", "Wallet: " + shortAddr(current), "ok");
+          setPill("loginPill", "Login: Saved (switch network)", "warn");
+          showNotice("warn", "Session found, but wrong network. Switch to Sepolia then login again.");
+          return;
+        }
+
+        await checkNetwork();
+
+        const recovered = ethers.utils.verifyMessage(s.message, s.signature);
+        if (recovered.toLowerCase() !== current.toLowerCase()) {
+          localStorage.removeItem(SESSION_KEY);
+          return;
+        }
+
+        currentAccount = current;
+        setPill("accPill", "Wallet: " + shortAddr(currentAccount), "ok");
+        setPill("loginPill", "Login: Verified ✅", "ok");
+        setPill("contractPill", "Contract: " + shortAddr(CONTRACT_ADDRESS), "ok");
+
+        contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+        enableActions(true);
+
+        showNotice("ok", "Welcome back ✅ Session restored.");
+        log("Session restored: " + currentAccount);
+      } catch (_) {}
+    }
+
+    async function txWrap(txPromise, outId, label) {
+      try {
+        $(outId).textContent = label + ": sending transaction…";
+        const tx = await txPromise;
+        $(outId).textContent = label + ": tx sent\n" + tx.hash;
+
+        const rec = await tx.wait();
+        $(outId).textContent = label + ": confirmed ✅\nTx: " + tx.hash + "\nBlock: " + rec.blockNumber;
+        return rec;
+      } catch (e) {
+        const f = friendlyError(e);
+        $(outId).textContent = label + ": ERROR ❌\n" + f;
+        showNotice("bad", f);
+        log("ERROR (" + label + "): " + f);
+        throw e;
+      }
+    }
+
+    // -----------------------------
+    // READ
+    // -----------------------------
+    async function readAssetCount() {
+      await checkNetwork();
+      const c = await contract.assetCount();
+      $("assetCountVal").textContent = c.toString();
+    }
+
+    async function readAsset() {
+      await checkNetwork();
+      const id = $("readAssetId").value.trim();
+      if (!id) return $("assetOut").textContent = "Enter asset ID";
+      const a = await contract.assets(id);
+      $("assetOut").textContent = JSON.stringify({
+        id: a.id.toString(),
+        name: a.name,
+        location: a.location,
+        metadataURI: a.metadataURI,
+        totalShares: a.totalShares.toString(),
+        pricePerShareWei: a.pricePerShareWei.toString(),
+        issuer: a.issuer,
+        active: a.active
+      }, null, 2);
+    }
+
+    async function readIssuerAvail() {
+      await checkNetwork();
+      const assetId = $("xAssetId").value.trim();
+      if (!assetId) return $("extraOut").textContent = "Enter Asset ID";
+      const v = await contract.availableIssuerShares(assetId);
+      $("extraOut").textContent = `Issuer shares left for asset ${assetId}: ${v.toString()}`;
+    }
+
+    async function readContractBal() {
+      await checkNetwork();
+      const v = await contract.contractBalance();
+      $("extraOut").textContent = `Contract ETH balance: ${ethers.utils.formatEther(v)} ETH`;
+    }
+
+    async function readAssetSummary() {
+      await checkNetwork();
+      const assetId = $("xAssetId").value.trim();
+      if (!assetId) return $("extraOut").textContent = "Enter Asset ID";
+      const r = await contract.getAssetSummary(assetId);
+      $("extraOut").textContent = JSON.stringify({
+        id: r[0].toString(),
+        name: r[1],
+        location: r[2],
+        totalShares: r[3].toString(),
+        pricePerShareWei: r[4].toString(),
+        issuer: r[5],
+        active: r[6]
+      }, null, 2);
+    }
+
+    async function readMyBalanceOnAsset() {
+      await checkNetwork();
+      const assetId = $("xAssetId").value.trim();
+      if (!assetId) return $("extraOut").textContent = "Enter Asset ID";
+      const my = await signer.getAddress();
+      const bal = await contract.balances(assetId, my);
+      $("extraOut").textContent = `Your shares on asset ${assetId}: ${bal.toString()}\n(${my})`;
+    }
+
+    // -----------------------------
+    // WRITE
+    // -----------------------------
+    async function createAsset() {
+      await checkNetwork();
+      const name = $("cName").value.trim();
+      const loc = $("cLoc").value.trim();
+      const uri = $("cUri").value.trim();
+      const shares = $("cShares").value.trim();
+      const priceWei = $("cPriceWei").value.trim();
+
+      if (!name || !loc || !shares || !priceWei) {
+        return showNotice("warn", "Please fill Name, Location, Total Shares, Price Per Share.");
+      }
+
+      await txWrap(contract.createAsset(name, loc, uri, shares, priceWei), "createOut", "Create Asset");
+      await readAssetCount();
+    }
+
+    async function buyShares() {
+      await checkNetwork();
+      const assetId = $("bAssetId").value.trim();
+      const shares = $("bShares").value.trim();
+      if (!assetId || !shares) return showNotice("warn", "Enter Asset ID and Shares.");
+
+      const a = await contract.assets(assetId);
+      const costWei = ethers.BigNumber.from(shares).mul(a.pricePerShareWei);
+
+      await txWrap(contract.buyShares(assetId, shares, { value: costWei }), "buyOut", "Buy Shares (Primary)");
+    }
+
+    async function transferShares() {
+      await checkNetwork();
+      const assetId = $("tAssetId").value.trim();
+      const to = $("tTo").value.trim();
+      const shares = $("tShares").value.trim();
+      if (!assetId || !to || !shares) return showNotice("warn", "Enter Asset ID, Receiver Address, Shares.");
+
+      await txWrap(contract.transferShares(assetId, to, shares), "transferOut", "Transfer");
+    }
+
+    async function listSharesForSale() {
+      await checkNetwork();
+      const assetId = $("lAssetId").value.trim();
+      const shares = $("lShares").value.trim();
+      const priceWei = $("lPriceWei").value.trim();
+
+      if (!assetId || !shares || !priceWei) return showNotice("warn", "Enter Asset ID, Shares and Price.");
+      await txWrap(contract.listSharesForSale(assetId, shares, priceWei), "listOut", "List Shares");
+    }
+
+    async function cancelListing() {
+      await checkNetwork();
+      const assetId = $("lAssetId").value.trim();
+      if (!assetId) return showNotice("warn", "Enter Asset ID to cancel listing.");
+      await txWrap(contract.cancelListing(assetId), "listOut", "Cancel Listing");
+    }
+
+    async function readListing() {
+      await checkNetwork();
+      const assetId = $("blAssetId").value.trim();
+      const seller = $("blSeller").value.trim();
+      if (!assetId || !seller) return showNotice("warn", "Enter Asset ID and Seller address.");
+      const L = await contract.listings(assetId, seller);
+      $("buyListOut").textContent = JSON.stringify({
+        shares: L.shares.toString(),
+        pricePerShareWei: L.pricePerShareWei.toString(),
+        active: L.active
+      }, null, 2);
+    }
+
+    async function buyFromListing() {
+      await checkNetwork();
+      const assetId = $("blAssetId").value.trim();
+      const seller = $("blSeller").value.trim();
+      const shares = $("blShares").value.trim();
+      if (!assetId || !seller || !shares) return showNotice("warn", "Enter Asset ID, Seller, Shares.");
+
+      const L = await contract.listings(assetId, seller);
+      if (!L.active) return showNotice("warn", "This listing is not active.");
+
+      const costWei = ethers.BigNumber.from(shares).mul(L.pricePerShareWei);
+      await txWrap(contract.buyListedShares(assetId, seller, shares, { value: costWei }), "buyListOut", "Buy From Listing");
+    }
+
+    async function fundContract() {
+      await checkNetwork();
+      const eth = $("fEth").value.trim();
+      if (!eth) return showNotice("warn", "Enter ETH amount (example 0.01).");
+      const valueWei = ethers.utils.parseEther(eth);
+      await txWrap(contract.fundContract({ value: valueWei }), "fundOut", "Fund Contract");
+    }
+
+    async function sellSharesBuyback() {
+      await checkNetwork();
+      const assetId = $("sAssetId").value.trim();
+      const shares = $("sShares").value.trim();
+      if (!assetId || !shares) return showNotice("warn", "Enter Asset ID and Shares.");
+      await txWrap(contract.sellSharesBuyback(assetId, shares), "sellOut", "Sell Buyback");
+    }
+
+    async function getOwners() {
+      await checkNetwork();
+      const assetId = $("oAssetId").value.trim();
+      if (!assetId) return showNotice("warn", "Enter Asset ID.");
+      const owners = await contract.getOwners(assetId);
+      $("ownersOut").textContent = owners.map((a, i) => `${i + 1}. ${a}`).join("\n");
+    }
+
+    async function getTop10() {
+      await checkNetwork();
+      const assetId = $("oAssetId").value.trim();
+      if (!assetId) return showNotice("warn", "Enter Asset ID.");
+      const res = await contract.getTop10Beneficiaries(assetId);
+      const addrs = res[0], shares = res[1];
+      let out = ["Top 10 Beneficiaries:"];
+      for (let i = 0; i < addrs.length; i++) out.push(`${i + 1}. ${addrs[i]} → ${shares[i].toString()} shares`);
+      $("ownersOut").textContent = out.join("\n");
+    }
+
+    async function checkBalance() {
+      await checkNetwork();
+      const assetId = $("balAssetId").value.trim();
+      const addr = $("balAddr").value.trim();
+      if (!assetId || !addr) return showNotice("warn", "Enter Asset ID and Address.");
+      const bal = await contract.balances(assetId, addr);
+      $("balOut").textContent = `${addr}\nAsset ${assetId} balance: ${bal.toString()} shares`;
+    }
+
+    // -----------------------------
+    // Navigation active state
+    // -----------------------------
+    function setActiveNav(sectionId){
+      document.querySelectorAll(".navLink").forEach(a=>{
+        a.classList.toggle("active", a.dataset.sec === sectionId);
+      });
+    }
+
+    function watchSections(){
+      const sections = [
+        "sec-dashboard","sec-read","sec-issuer","sec-primary","sec-transfer","sec-secondary","sec-liquidity","sec-analytics","sec-debug"
+      ].map(id => document.getElementById(id));
+
+      const obs = new IntersectionObserver((entries)=>{
+        const visible = entries
+          .filter(e=>e.isIntersecting)
+          .sort((a,b)=>b.intersectionRatio - a.intersectionRatio)[0];
+        if (visible) setActiveNav(visible.target.id);
+      }, { root: null, threshold: [0.12, 0.18, 0.25, 0.35] });
+
+      sections.forEach(s=>s && obs.observe(s));
+    }
+
+    // -----------------------------
+    // Mobile Option A helper
+    // -----------------------------
+    function isMobileUA(){
+      return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    }
+
+    function openMobileModal(){
+      $("mobileModal").style.display = "flex";
+    }
+    function closeMobileModal(){
+      $("mobileModal").style.display = "none";
+    }
+
+    // -----------------------------
+    // UI hooks
+    // -----------------------------
+    $("btnLogin").onclick = async () => {
+      try { await loginWithSignature(); }
+      catch (e) { showNotice("bad", friendlyError(e)); log("LOGIN ERROR: " + friendlyError(e)); }
+    };
+
+    $("btnLogout").onclick = () => logout();
+
+    $("btnRefresh").onclick = async () => { try { await readAssetCount(); } catch (e) { showNotice("bad", friendlyError(e)); } };
+
+    $("btnWhoAmI").onclick = async () => {
+      try {
+        const a = await signer.getAddress();
+        showNotice("ok", "You are logged in as: " + a);
+      } catch (e) { showNotice("bad", "Not logged in."); }
+    };
+
+    $("btnAssetCount").onclick = async () => { try { await readAssetCount(); } catch (e) { showNotice("bad", friendlyError(e)); } };
+    $("btnReadAsset").onclick = async () => { try { await readAsset(); } catch (e) { showNotice("bad", friendlyError(e)); } };
+
+    $("btnIssuerAvail").onclick = async () => { try { await readIssuerAvail(); } catch (e) { showNotice("bad", friendlyError(e)); } };
+    $("btnContractBal").onclick = async () => { try { await readContractBal(); } catch (e) { showNotice("bad", friendlyError(e)); } };
+    $("btnAssetSummary").onclick = async () => { try { await readAssetSummary(); } catch (e) { showNotice("bad", friendlyError(e)); } };
+    $("btnMyBal").onclick = async () => { try { await readMyBalanceOnAsset(); } catch (e) { showNotice("bad", friendlyError(e)); } };
+
+    $("btnCreate").onclick = async () => { try { await createAsset(); } catch (e) { showNotice("bad", friendlyError(e)); } };
+    $("btnBuy").onclick = async () => { try { await buyShares(); } catch (e) { showNotice("bad", friendlyError(e)); } };
+    $("btnTransfer").onclick = async () => { try { await transferShares(); } catch (e) { showNotice("bad", friendlyError(e)); } };
+
+    $("btnList").onclick = async () => { try { await listSharesForSale(); } catch (e) { showNotice("bad", friendlyError(e)); } };
+    $("btnCancelList").onclick = async () => { try { await cancelListing(); } catch (e) { showNotice("bad", friendlyError(e)); } };
+    $("btnReadListing").onclick = async () => { try { await readListing(); } catch (e) { showNotice("bad", friendlyError(e)); } };
+    $("btnBuyListing").onclick = async () => { try { await buyFromListing(); } catch (e) { showNotice("bad", friendlyError(e)); } };
+
+    $("btnFund").onclick = async () => { try { await fundContract(); } catch (e) { showNotice("bad", friendlyError(e)); } };
+    $("btnSellBuyback").onclick = async () => { try { await sellSharesBuyback(); } catch (e) { showNotice("bad", friendlyError(e)); } };
+
+    $("btnOwners").onclick = async () => { try { await getOwners(); } catch (e) { showNotice("bad", friendlyError(e)); } };
+    $("btnTop10").onclick = async () => { try { await getTop10(); } catch (e) { showNotice("bad", friendlyError(e)); } };
+    $("btnBalance").onclick = async () => { try { await checkBalance(); } catch (e) { showNotice("bad", friendlyError(e)); } };
+
+    $("btnCopyMyAddr").onclick = async () => {
+      try {
+        const a = await signer.getAddress();
+        await navigator.clipboard.writeText(a);
+        showNotice("ok", "Copied your address ✅");
+      } catch (e) { showNotice("bad", "Copy failed. Try manual copy from MetaMask."); }
+    };
+
+    $("btnPasteMe").onclick = async () => {
+      const a = await signer.getAddress();
+      $("tTo").value = a;
+      showNotice("ok", "Pasted your address into 'To Address'.");
+    };
+
+    $("btnOpenFaucet").onclick = () => {
+      alert("Open a Sepolia faucet (example: Alchemy Sepolia faucet / sepoliafaucet.com).");
+    };
+
+    // Topbar helpers
+    $("btnScrollTop").onclick = () => window.scrollTo({ top: 0, behavior: "smooth" });
+    $("btnMobileHelp").onclick = () => openMobileModal();
+
+    // Modal buttons
+    $("btnCloseMobile").onclick = () => closeMobileModal();
+    $("btnDismissMobile").onclick = () => closeMobileModal();
+    $("btnCopyUrl").onclick = async () => {
+      try{
+        await navigator.clipboard.writeText(location.href);
+        showNotice("ok", "Copied page URL ✅ Open it inside MetaMask Mobile Browser.");
+        closeMobileModal();
+      }catch(e){
+        showNotice("warn", "Could not copy URL. Manually copy from address bar.");
+      }
+    };
+    $("mobileModal").addEventListener("click", (e)=>{
+      if (e.target.id === "mobileModal") closeMobileModal();
+    });
+
+    // Auto reload on account/network change
+    if (window.ethereum) {
+      window.ethereum.on("accountsChanged", () => location.reload());
+      window.ethereum.on("chainChanged", () => location.reload());
+    }
+
+    // Initial UI state
+    enableActions(false);
+    setPill("netPill", "Network: Not checked", "warn");
+    setPill("accPill", "Wallet: Not connected", "warn");
+    setPill("loginPill", "Login: Not verified", "warn");
+    setPill("contractPill", "Contract: Not set", "warn");
+    showNotice("warn", "Step 1: Click 'Login with MetaMask' to start.");
+
+    // Section observer for nav highlight
+    watchSections();
+    setActiveNav("sec-dashboard");
+
+    // Try restore session
+    tryRestoreSession();
+
+    // Option A auto-help: on mobile + no ethereum injected, show modal
+    window.addEventListener("load", ()=>{
+      if (isMobileUA() && !window.ethereum) {
+        openMobileModal();
+      }
+    });
+  </script>
+</body>
+</html>
